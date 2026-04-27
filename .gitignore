@@ -1,0 +1,10 @@
+# Local overrides (optional; many teams also put secrets only in this file)
+.env
+
+# Generated output
+*.xlsx
+!*.example.xlsx
+
+# Python
+__pycache__/
+*.py[cod]
