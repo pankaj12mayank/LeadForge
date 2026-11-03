@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block body %}
+<h1 class="text-2xl font-bold mb-4">Leads</h1>
+<div class="flex flex-wrap gap-4 mb-6 items-end">
+  <form method="get" action="/leads" class="flex gap-2">
+    <input name="q" value="{{ q }}" placeholder="Search name/company/email" class="border rounded px-3 py-2">
+    <select name="tier" class="border rounded px-3 py-2">
+      <option value="">All tiers</option><option value="hot" {{ 'selected' if tier=='hot' }}>Hot</option><option value="warm" {{ 'selected' if tier=='warm' }}>Warm</option><option value="cold" {{ 'selected' if tier=='cold' }}>Cold</option>
+    </select>
+    <select name="status" class="border rounded px-3 py-2">
+      <option value="">All statuses</option><option value="new" {{ 'selected' if status=='new' }}>New</option><option value="contacted" {{ 'selected' if status=='contacted' }}>Contacted</option><option value="replied" {{ 'selected' if status=='replied' }}>Replied</option><option value="won" {{ 'selected' if status=='won' }}>Won</option><option value="lost" {{ 'selected' if status=='lost' }}>Lost</option>
+    </select>
+    <button class="bg-blue-600 text-white px-4 py-2 rounded">Filter</button>
+    <a href="/leads" class="px-4 py-2 border rounded text-slate-700">Clear</a>
+  </form>
+  <div class="ml-auto flex gap-2">
+    <a href="/leads/export?fmt=xlsx" class="bg-blue-600 text-white px-4 py-2 rounded">Export XLSX</a>
+    <a href="/leads/export?fmt=csv" class="bg-slate-700 text-white px-4 py-2 rounded">Export CSV</a>
+  </div>
+</div>
+
+<form method="post" action="/leads/bulk" class="mb-4">
+  <div class="bg-white p-4 rounded shadow border overflow-x-auto">
+    <table class="w-full text-left text-sm">
+      <thead class="bg-slate-50">
+        <tr>
+          <th class="px-4 py-2"><input type="checkbox" id="all"></th>
+          <th class="px-4 py-2">Name</th><th class="px-4 py-2">Title</th><th class="px-4 py-2">Company</th>
+          <th class="px-4 py-2">Email</th><th class="px-4 py-2">Source</th><th class="px-4 py-2">Score</th><th class="px-4 py-2">Tier</th><th class="px-4 py-2">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for l in leads %}
+        <tr class="border-b">
+          <td class="px-4 py-2"><input type="checkbox" name="ids" value="{{ l.id }}"></td>
+          <td class="px-4 py-2">{{ l.name }}</td>
+          <td class="px-4 py-2">{{ l.title or '-' }}</td>
+          <td class="px-4 py-2">{{ l.company or '-' }}</td>
+          <td class="px-4 py-2">{{ l.email or '-' }}</td>
+          <td class="px-4 py-2">{{ l.source or '-' }}</td>
+          <td class="px-4 py-2">{{ l.score or '-' }}</td>
+          <td class="px-4 py-2">{{ l.tier or '-' }}</td>
+          <td class="px-4 py-2">{{ l.status }}</td>
+        </tr>
+        {% else %}
+        <tr><td class="px-4 py-4 text-slate-500" colspan="9">No leads.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="flex gap-2 mt-3">
+    <select name="status" class="border rounded px-3 py-2">
+      <option value="contacted">Mark contacted</option><option value="replied">Mark replied</option><option value="won">Mark won</option><option value="lost">Mark lost</option>
+    </select>
+    <button class="bg-blue-600 text-white px-4 py-2 rounded">Apply to selected</button>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: leadforge
+          POSTGRES_PASSWORD: leadforge
+          POSTGRES_DB: leadforge
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U leadforge -d leadforge"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run migrations + seed
+        env:
+          DATABASE_URL: postgresql+psycopg2://leadforge:leadforge@localhost:5432/leadforge
+          APP_ENV: test
+          SECRET_KEY: test-secret-key-do-not-use-in-prod-32chars
+          RAZORPAY_WEBHOOK_SECRET: whsec_test
+        run: |
+          alembic upgrade head
+          python -m scripts.seed
+      - name: Run tests
+        env:
+          DATABASE_URL: postgresql+psycopg2://leadforge:leadforge@localhost:5432/leadforge
+          APP_ENV: test
+          SECRET_KEY: test-secret-key-do-not-use-in-prod-32chars
+          RAZORPAY_WEBHOOK_SECRET: whsec_test
+        run: python -m pytest -q
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Deploy (Render git push or VPS SSH)
+        run: |
+          echo "Deploy: git push to Render, or SSH to VPS and run scripts/update.sh"

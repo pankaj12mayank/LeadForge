@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block body %}
+<section class="py-16 bg-slate-900 text-white">
+  <div class="max-w-4xl mx-auto px-4 text-center">
+    <h1 class="text-4xl md:text-6xl font-bold mb-4">LeadForge</h1>
+    <p class="text-lg text-slate-300 mb-8">
+      Type one natural-language query. We plan, search, enrich, score, and deliver leads to your dashboard.
+    </p>
+    <div class="flex flex-col sm:flex-row gap-3 justify-center">
+      <a href="/auth/signup" class="px-6 py-3 bg-blue-600 text-white rounded font-semibold hover:bg-blue-500">Get started</a>
+      <a href="/pricing" class="px-6 py-3 border border-slate-600 text-slate-200 rounded font-semibold hover:bg-slate-800">Pricing</a>
+    </div>
+  </div>
+</section>
+
+<section class="py-12 px-4">
+  <div class="max-w-5xl mx-auto">
+    <h2 class="text-2xl font-bold mb-8 text-center">How it works</h2>
+    <div class="grid md:grid-cols-3 gap-8">
+      <div class="text-center p-4 bg-white rounded shadow border p-6">
+        <div class="text-blue-600 text-2xl mb-3">1</div>
+        <h3 class="font-semibold mb-2">Ask in plain language</h3>
+        <p class="text-slate-600 text-sm">"India fintech startups whose founders do manual reporting, 20 leads"</p>
+      </div>
+      <div class="text-center p-4 bg-white rounded shadow border p-6">
+        <div class="text-blue-600 text-2xl mb-3">2</div>
+        <h3 class="font-semibold mb-2">AI plans &amp; sources run in parallel</h3>
+        <p class="text-slate-600 text-sm">Planner picks Apollo, web search, and Places; sources run concurrently.</p>
+      </div>
+      <div class="text-center p-4 bg-white rounded shadow border p-6">
+        <div class="text-blue-600 text-2xl mb-3">3</div>
+        <h3 class="font-semibold mb-2">Enriched, scored, delivered</h3>
+        <p class="text-slate-600 text-sm">Deduplicated, enriched, AI-scored 0-100, ready to export.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="py-12 bg-slate-50 px-4">
+  <div class="max-w-3xl mx-auto text-center">
+    <h2 class="text-2xl font-bold mb-6">Sources &amp; features</h2>
+    <ul class="text-left mx-auto max-w-lg text-slate-600 space-y-3">
+      <li class="flex items-start gap-2"><span class="text-blue-600">✓</span> Apollo, web search, Google Places</li>
+      <li class="flex items-start gap-2"><span class="text-blue-600">✓</span> Deduplication across sources and your org</li>
+      <li class="flex items-start gap-2"><span class="text-blue-600">✓</span> Waterfall enrichment (Apollo → Hunter → Skrapp)</li>
+      <li class="flex items-start gap-2"><span class="text-blue-600">✓</span> AI scoring 0-100, hot/warm/cold tiers</li>
+      <li class="flex items-start gap-2"><span class="text-blue-600">✓</span> XLSX/CSV export, multi-tenant teams</li>
+    </ul>
+  </div>
+</section>
+
+<section class="py-12 px-4 text-center">
+  <h2 class="text-2xl font-bold mb-6">Ready to start?</h2>
+  <a href="/auth/signup" class="px-6 py-3 bg-blue-600 text-white rounded font-semibold hover:bg-blue-500">Create your organization</a>
+  <p class="text-slate-500 mt-3">Includes a 7-day trial with 10 credits.</p>
+</section>
+{% endblock %}

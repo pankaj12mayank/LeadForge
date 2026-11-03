@@ -1,106 +1,151 @@
-# LinkedIn lead scraper
+# LeadForge
 
-People-search results → one **Excel** file (`linkedin_leads.xlsx` by default), with optional **Ollama** or **OpenAI** for “Problem seen” and “Solution”, and optional **HTTP API** to push leads into your app.
+**Project name:** LeadForge (everywhere). The product and repo are LeadForge; "LeadForge" references have been removed.
 
-## LeadPilot v3 (scrape + enrichment + scoring)
+## What it is
 
-Modular pipeline in the `leadpilot/` package:
+LeadForge is a multi-tenant lead-sourcing SaaS. A user types one natural-language query, e.g.:
 
-| Step | Module | Notes |
-|------|--------|--------|
-| LinkedIn | `leadpilot/scraper.py` | Wraps `collect_linkedin_leads()` (same Selenium layer as `lead_scraper.py`) |
-| Enrichment | `leadpilot/enrichment.py` | **Apollo.io** then **Skrapp** fallback; set `APOLLO_API_KEY`, `SKRAPP_API_KEY` |
-| Scoring | `leadpilot/scoring.py` | Weighted 0–100 + Hot/Warm/Cold; optional GPT via `OPENAI_API_KEY`, `SCORING_GPT_SCORE=1` |
-| Export | `leadpilot/export.py` | Excel + optional JSON |
-
-**Run (from `Linkedin/`):**
-
-```bash
-python leadpilot_single.py --test -n 5 -o leadpilot_runs.xlsx
-# or
-python -m leadpilot --help
+```
+India fintech startups whose founders do manual reporting, 20 leads
 ```
 
-- `--test` sets `LEADPILOT_TEST=1` (caps leads at 10) and enables verbose logging.
-- `--skip-enrich` / `--skip-scoring` for dry runs.
-- `LEADPILOT_PREFLIGHT=0` skips the same health checks as the legacy scraper if you only want API steps.
+The system creates a job; an AI planner picks sources; sources run in parallel; results are merged, deduplicated, enriched, AI-scored; the user sees leads in a dashboard and can export them.
 
-**Env (add to `scraper.env` or `.env`):** `APOLLO_API_KEY`, `SKRAPP_API_KEY` (and optional `APOLLO_BASE_URL`, `SKRAPP_BASE_URL`), `ENRICHMENT_ENABLED=0` to turn enrichment off, `LEADPILOT_OUT_XLSX` for default output path.
+**Surfaces:** Landing page, User app, Admin panel.  
+**Stack:** Python 3.11, FastAPI, PostgreSQL (Alembic), Jinja2 + HTMX + Tailwind (CDN), openpyxl (export only). No Docker, Redis, Celery, Node, or Selenium.
 
-See **`LEADPILOT.md`** for architecture and API notes.
+## Quick start (Linux / Windows, no Docker)
 
-## Quick start
+```bash
+cd LeadForge
+python -m venv venv
+# Linux:
+source venv/bin/activate
+# Windows PowerShell:
+venv\Scripts\Activate.ps1
 
-1. **Python 3.10+** and dependencies:
+pip install -r requirements.txt
 
-   ```bash
-   cd Linkedin
-   pip install -r requirements.txt
+# 1. Start embedded Postgres for local dev (prints DATABASE_URL)
+python scripts/dev_db.py   # leave this running in a terminal
+
+# 2. Copy env and set DATABASE_URL to the URL printed above
+copy .env.example .env      # Windows
+# cp .env.example .env      # Linux
+# edit .env: DATABASE_URL=postgresql+psycopg2://postgres:@127.0.0.1:54320/postgres
+
+# 3. Seed plans + admin user
+python -m scripts.seed
+
+# 4. Run web + worker (two terminals)
+uvicorn app.main:app --reload        # http://127.0.0.1:8000
+python -m app.worker                 # background job processor
+```
+
+Default admin seed (from `.env`): `ADMIN_EMAIL=admin@leadforge.local`, `ADMIN_PASSWORD=AdminPass123!`.
+
+## Admin user
+
+After seeding, sign in at `http://127.0.0.1:8000/auth/login` with:
+
+- Email: `admin@leadforge.local`
+- Password: `AdminPass123!` (change `ADMIN_PASSWORD` in `.env` before seeding for production)
+
+The admin can access `/admin` to view users, orgs, jobs, MRR, failure rate; suspend/activate users and orgs; grant credits; change plans; retry/cancel failed jobs; edit plans; view provider health and audit log.
+
+### Admin screenshots
+
+Add screenshots here after you run the app locally. Capture these pages and paste the image files into `docs/screenshots/`, then reference them:
+
+1. **Login page** — `http://127.0.0.1:8000/auth/login`
+   ```
+   ![Admin login](docs/screenshots/admin-login.png)
+   ```
+2. **Dashboard** — `http://127.0.0.1:8000/dashboard` (credits, plan, recent jobs)
+   ```
+   ![Dashboard](docs/screenshots/dashboard.png)
+   ```
+3. **Jobs page** — `http://127.0.0.1:8000/jobs/<id>` (status polling via HTMX)
+   ```
+   ![Job status](docs/screenshots/job-status.png)
+   ```
+4. **Leads table** — `http://127.0.0.1:8000/leads` (filter, sort, bulk status, export)
+   ```
+   ![Leads table](docs/screenshots/leads-table.png)
+   ```
+5. **Admin panel** — `http://127.0.0.1:8000/admin` (overview, users/orgs, jobs, plans)
+   ```
+   ![Admin panel](docs/screenshots/admin-panel.png)
    ```
 
-2. **Config — keep `.env.example`, `.env`, and `scraper.env` in sync**
+I cannot generate real screenshots for you; run the app and take the above screenshots, then paste them into `docs/screenshots/` and uncomment the image lines.
 
-   | File | Purpose |
-   |------|--------|
-   | **`.env.example`** | Full template (all options + comments). Copy when setting up a new machine. |
-   | **`.env`** | Your local values (gitignored). Same keys as `scraper.env` by default. |
-   | **`scraper.env`** | Same content as `.env`, but **no leading dot** so it’s easy to spot in Explorer. |
+## Run commands
 
-   **Load order:** `.env` first, then **`scraper.env`** (it **overrides** duplicate keys). Put API keys in either file; if both exist, prefer editing **`scraper.env`** so secrets stay out of `.env` if you use tooling that only reads `.env`.
+- `python -m scripts.seed` — seed/update the 2 plans (Starter, Pro) and admin user.
+- `uvicorn app.main:app --reload` — web app (port 8000).
+- `python -m app.worker` — background job worker + saved-search scheduler.
+- `alembic upgrade head` — run database migrations.
+- `python -m pytest -q` — test suite (uses embedded pgserver Postgres).
 
-3. **Chrome with remote debugging** (recommended — you log in and set filters yourself):
+## Environment (.env / .env.example)
 
-   ```text
-   "C:\Program Files\Google\Chrome\Application\chrome.exe" --remote-debugging-port=9222 --user-data-dir="D:\selenium\li_profile"
-   ```
+All secrets come from the environment. Never commit `.env`.
 
-   Log in to LinkedIn, open **People** search, set keyword / location / **2nd** connections, show results.
+| Variable | Purpose |
+|---|---|
+| `DATABASE_URL` | PostgreSQL connection (required) |
+| `SECRET_KEY` | session/csrf signing (change in prod) |
+| `APP_ENV` | dev \| prod |
+| `BASE_URL` | public base URL |
+| `LLM_PROVIDER` | openai \| ollama \| none (default none) |
+| `OPENAI_API_KEY`, `OPENAI_MODEL` | OpenAI scoring/planning |
+| `OLLAMA_BASE_URL`, `OLLAMA_MODEL` | local Ollama |
+| `APOLLO_API_KEY` | Apollo enrichment |
+| `HUNTER_API_KEY` | Hunter enrichment fallback |
+| `SKRAPP_API_KEY` | Skrapp enrichment fallback |
+| `TAVILY_API_KEY` / `SERPER_API_KEY` | web search |
+| `GOOGLE_PLACES_API_KEY` | Google Places (Pro source) |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM` | email; omitted = dev console logs reset links |
+| `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`, `RAZORPAY_MODE` | billing (test/live) |
+| `LEADOPS_URL`, `LEADOPS_TOKEN` | optional LeadOps push |
+| `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_NAME` | admin seed |
+| `TRIAL_CREDITS`, `TRIAL_DAYS` | trial defaults (10 credits, 7 days) |
+| `RATE_LIMIT_JOBS_PER_HOUR` | per-org job creation limit |
 
-4. **Run**
+## Credits & plans
 
-   ```bash
-   python lead_scraper.py
-   ```
+1 credit per lead delivered. Credits are reserved before a job and refunded if unused. Insufficient credits block job creation.
 
-   First run executes **preflight** checks (Chrome port, Ollama/API, writable folder). Use `SKIP_PREFLIGHT=1` only if you must.
+- **Starter:** 50 credits/mo, 1 seat, basic sources/scoring.
+- **Pro:** 300 credits/mo, 5 seats, Places source, AI openers, API access, saved searches.
 
-### CLI
+Plans live in the `plans` table and are seeded by `scripts.seed`. Never hardcode plan limits in code; read them from the plans table.
 
-| Command | Meaning |
-|--------|---------|
-| `python lead_scraper.py` | Full run |
-| `python lead_scraper.py -n 25` | At most **25** leads (overrides `MAX_LEADS` and the interactive prompt) |
-| `python lead_scraper.py 25` | Same as `-n 25` |
-| `python lead_scraper.py --verify-only` | Health checks only (`--check` / `-v` also work) |
-| `python preflight.py` | Same as verify-only |
+## Deployment (no Docker)
 
-### Environment variables (main)
+**Render/Railway:** `Procfile` + `render.yaml` (web + worker, managed Postgres). Release command: `alembic upgrade head && python -m scripts.seed`. Deploy = git push.
 
-| Variable | Meaning |
-|----------|---------|
-| `ATTACH_EXISTING_CHROME` | `1` = attach to port `REMOTE_DEBUG_PORT` (default). `0` = Selenium starts a new Chrome. |
-| `MAX_LEADS` | How many profiles to scrape (alias: `MAX_PROFILES`). |
-| `MAX_LEADS_CAP` | Hard cap (default 500). |
-| `ASK_MAX_LEADS` | `1` = after the browser is ready, ask how many leads (unless `-n` is passed). |
-| `LEADS_FILE` | Output filename, e.g. `linkedin_leads.xlsx`. |
-| `AI_BACKEND` | `ollama` (default), `api` (OpenAI-compatible), or `none`. |
-| `OLLAMA_BASE_URL` / `OLLAMA_MODEL` | Local Ollama server and model. |
-| `OPENAI_API_KEY` / `OPENAI_MODEL` | When `AI_BACKEND=api`. |
-| `LNN_*` | Optional push to a backend that accepts the project’s lead API (see your app’s docs). |
+**VPS (Ubuntu):** `scripts/setup_vps.sh` installs Postgres, venv, deps, runs alembic + seed, creates systemd units `leadforge-web` and `leadforge-worker`, configures Caddy HTTPS, and sets up pg_dump backups. Use `scripts/update.sh` and `scripts/rollback.sh` for updates.
 
-See **`.env.example`** for the full list.
+## Files
 
-## Output
+- `app/main.py` — FastAPI app, `/healthz`, routers
+- `app/config.py` — pydantic-settings
+- `app/db.py` — SQLAlchemy engine/session
+- `app/models/` — SQLAlchemy models
+- `app/services/` — planner, llm, sources, merge, enrich, score, quota, exporter, integrations
+- `app/worker.py` — Postgres job queue (`SKIP LOCKED`) + scheduler
+- `scripts/seed.py` — plans + admin seed
+- `scripts/dev_db.py` — embedded local Postgres
+- `alembic/` — migrations
+- `tests/` — pytest suite
+- `docs/` — ARCHITECTURE.md, DEPLOY.md, ADMIN.md
+- `DECISIONS.md` — design decisions
 
-- **One** `.xlsx` file (columns include Name, Company, Role, Profile link, agency type, team size, problem, last active, solution).
-- No separate CSV.
+## Notes
 
-## Troubleshooting
-
-- **Preflight fails on port 9222** — Start Chrome with `--remote-debugging-port=9222`, or set `ATTACH_EXISTING_CHROME=0` to let the script launch Chrome (LinkedIn login is harder in that mode).
-- **Ollama errors** — Run `ollama serve` and `ollama pull <model>` (e.g. `qwen2.5:7b`), or set `AI_BACKEND=none` for rule-based text only.
-- **`.env` not showing in Explorer** — Use **`scraper.env`** in the same folder; the code loads both.
-
-## License
-
-Use at your own risk; respect LinkedIn’s terms and applicable laws.
+- The legacy Selenium/Chrome/Excel-datastore scraper (`lead_scraper.py`, `preflight.py`, `leadforge_single.py`, `scraper.env`) was removed. Excel/CSV is export-only.
+- `KEY_MODE=platform` is implemented; `byo` (org-owned encrypted keys) is flagged TODO.
+- Without API keys the app runs in rule-based/no-AI mode.

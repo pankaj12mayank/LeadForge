@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block body %}
+<div class="max-w-md mx-auto mt-12 p-6 bg-white rounded shadow">
+  <h2 class="text-xl font-semibold mb-6">Create account</h2>
+  <form method="post" action="/auth/signup" class="space-y-4">
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+    <div>
+      <label class="block text-sm font-medium">Email</label>
+      <input name="email" type="email" required class="mt-1 block w-full border rounded px-3 py-2">
+    </div>
+    <div>
+      <label class="block text-sm font-medium">Name</label>
+      <input name="name" class="mt-1 block w-full border rounded px-3 py-2">
+    </div>
+    <div>
+      <label class="block text-sm font-medium">Password</label>
+      <input name="password" type="password" required class="mt-1 block w-full border rounded px-3 py-2">
+    </div>
+    <button class="w-full bg-blue-600 text-white py-2 rounded">Create account</button>
+    <p class="text-sm text-center text-slate-500 mt-4">Have an account? <a href="/auth/login" class="underline">Sign in</a></p>
+  </form>
+</div>
+{% endblock %}

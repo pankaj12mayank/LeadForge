@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block body %}
+<div class="flex justify-between items-end mb-6">
+  <div>
+    <h1 class="text-2xl font-bold">Searches</h1>
+    <p class="text-slate-500">Start a new lead search</p>
+  </div>
+  <a href="/dashboard" class="px-3 py-2 border border-slate-300 text-slate-700 rounded text-sm hover:bg-slate-100">Back</a>
+</div>
+
+<div class="max-w-lg bg-white p-6 rounded shadow border mb-8">
+  <h2 class="text-lg font-semibold mb-4">Find leads</h2>
+  <form method="post" action="/searches" class="space-y-4">
+    <div>
+      <label class="block text-sm font-medium mb-1">Natural-language query</label>
+      <textarea name="query" rows="3" required class="w-full border rounded px-3 py-2" placeholder="e.g. India fintech startups whose founders do manual reporting, 20 leads"></textarea>
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1">Target count</label>
+      <input name="target_count" type="number" min="1" max="500" value="10" class="w-full border rounded px-3 py-2">
+    </div>
+    <button class="w-full bg-blue-600 text-white py-2 rounded">Create search &amp; start job</button>
+  </form>
+</div>
+
+<h2 class="text-lg font-semibold mb-3">Saved searches</h2>
+<div class="bg-white rounded shadow border overflow-hidden">
+  <table class="w-full text-left text-sm">
+    <thead class="bg-slate-50"><tr><th class="px-4 py-2">Query</th><th class="px-4 py-2">Saved</th><th class="px-4 py-2">Created</th></tr></thead>
+    <tbody>
+      {% for s in searches %}
+      <tr class="border-b"><td class="px-4 py-2">{{ s.query }}</td><td class="px-4 py-2">{{ 'Yes' if s.is_saved else 'No' }}</td><td class="px-4 py-2 text-slate-500">{{ s.created_at }}</td></tr>
+      {% else %}
+      <tr><td class="px-4 py-4 text-slate-500" colspan="3">No searches yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

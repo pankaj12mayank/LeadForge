@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block body %}
+<div class="max-w-lg mt-6">
+  <h1 class="text-2xl font-bold mb-2">Job #{{ job.id }}</h1>
+  <div class="mb-4">
+    <div class="text-sm text-slate-500">Query</div>
+    <div class="font-medium">{{ job.search.query if job.search else '' }}</div>
+    <div class="text-sm text-slate-500 mt-1">Target: {{ (job.result_summary or {}).target_count or '-' }}</div>
+  </div>
+  <div id="status" hx-get="/jobs/{{ job.id }}/status" hx-trigger="every 2s" hx-swap="innerHTML">
+    <div class="p-4 bg-slate-100 rounded">Loading status...</div>
+  </div>
+  <div class="mt-4">
+    <a href="/leads" class="px-3 py-2 text-blue-600 hover:underline">View all leads</a>
+  </div>
+</div>
+{% endblock %}

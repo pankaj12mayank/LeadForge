@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block body %}
+<div class="max-w-5xl mx-auto px-4">
+  <h1 class="text-3xl font-bold mb-2 text-center">Pricing</h1>
+  <p class="text-slate-600 text-center mb-10">Simple per-organization plans. Credits reset monthly.</p>
+
+  <div class="grid md:grid-cols-2 gap-8">
+    {% for plan in plans %}
+    <div class="border rounded-2xl p-6 {% if loop.last %}bg-blue-50 ring-2 ring-blue-600{% else %}bg-white{% endif %} {{ 'shadow-lg' if loop.last else '' }}">
+      <h3 class="text-xl font-semibold">{{ plan.name }}</h3>
+      <div class="text-3xl font-bold mb-4">₹{{ plan.price_inr }}<span class="text-lg font-normal text-slate-500">/mo</span></div>
+      <p class="text-slate-600 text-sm mb-6">{{ plan.monthly_credits }} credits/month · {{ plan.seats }} seat{{ 's' if plan.seats != 1 else '' }}</p>
+      <ul class="text-sm text-slate-600 space-y-2 mb-6">
+        {% for k, v in (plan.features or {}).items() %}
+          {% if v %}
+        <li class="flex items-start gap-2"><span class="text-green-600">✓</span> {{ k.replace('_',' ') | title }}</li>
+        {% endif %}
+        {% endfor %}
+      </ul>
+      {% if loop.last %}
+        <a href="/auth/signup" class="w-full py-3 bg-blue-600 text-white rounded font-semibold">Start Pro trial</a>
+        <p class="text-xs text-slate-500 mt-3">Starter plan: 50 credits/mo, 1 seat.</p>
+      {% else %}
+        <a href="/auth/signup" class="w-full py-3 border border-slate-300 text-slate-700 rounded font-semibold">Get started</a>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="mt-12 text-center text-sm text-slate-500">
+    Need custom credits or higher seat limits? <a href="/auth/signup" class="underline">Contact us</a>.
+  </div>
+</div>
+{% endblock %}

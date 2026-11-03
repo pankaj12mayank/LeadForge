@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><title>{% block title %}LeadForge{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>body{font-family:Inter,system-ui,sans-serif}</style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen">
+  <nav class="bg-white border-b px-4 py-3 flex items-center justify-between shadow-sm">
+    <div class="flex items-center gap-3">
+      <span class="font-bold text-lg text-blue-600">LeadForge</span>
+    </div>
+    <div class="flex items-center gap-4">
+      <a href="/dashboard" class="px-3 py-2 text-slate-600 hover:bg-slate-100 rounded">Dashboard</a>
+      <a href="/searches" class="px-3 py-2 text-slate-600 hover:bg-slate-100 rounded">Searches</a>
+      <a href="/leads" class="px-3 py-2 text-slate-600 hover:bg-slate-100 rounded">Leads</a>
+      {% if user %}
+        <span class="text-xs text-slate-400">{{ credits if credits is defined else '' }} credits</span>
+        <form method="post" action="/auth/logout"><button class="text-xs text-red-600 underline">Sign out</button></form>
+      {% else %}
+        <a href="/auth/login" class="px-3 py-2 bg-blue-600 text-white rounded text-sm">Sign in</a>
+        <a href="/auth/signup" class="px-3 py-2 border border-slate-300 text-slate-700 rounded text-sm">Sign up</a>
+      {% endif %}
+    </div>
+  </nav>
+  <div class="max-w-4xl mx-auto py-6 px-4">
+    {% block body %}{% endblock %}
+  </div>
+</body>
+</html>
