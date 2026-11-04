@@ -15,39 +15,48 @@ The system creates a job; an AI planner picks sources; sources run in parallel; 
 **Surfaces:** Landing page, User app, Admin panel.  
 **Stack:** Python 3.11, FastAPI, PostgreSQL (Alembic), Jinja2 + HTMX + Tailwind (CDN), openpyxl (export only). No Docker, Redis, Celery, Node, or Selenium.
 
-## Quick start (Linux / Windows, no Docker)
+## Quick start (Windows PowerShell, no Docker)
 
-```bash
-cd LeadForge
+Run these in **3 separate terminals** (keep them open):
+
+**Terminal 1 - Database (keep running):**
+```powershell
+cd M:\GUC\LeadForge
 python -m venv venv
-# Linux:
-source venv/bin/activate
-# Windows PowerShell:
 venv\Scripts\Activate.ps1
-
 pip install -r requirements.txt
-
-# 1. Start embedded Postgres for local dev (prints DATABASE_URL)
-python scripts/dev_db.py   # leave this running in a terminal
-
-# 2. Copy env and set DATABASE_URL to the URL printed above
-copy .env.example .env      # Windows
-# cp .env.example .env      # Linux
-# edit .env: DATABASE_URL=postgresql+psycopg2://postgres:@127.0.0.1:54320/postgres
-
-# 3. Seed plans + admin user
-python -m scripts.seed
-
-# 4. Run web + worker (two terminals)
-uvicorn app.main:app --reload        # http://127.0.0.1:8000
-python -m app.worker                 # background job processor
+python scripts/dev_db.py
 ```
 
-Default admin seed (from `.env`): `ADMIN_EMAIL=admin@leadforge.local`, `ADMIN_PASSWORD=AdminPass123!`.
+**Terminal 2 - Web app (keep running):**
+```powershell
+cd M:\GUC\LeadForge
+venv\Scripts\Activate.ps1
+uvicorn app.main:app --port 8001
+```
+Then open: `http://127.0.0.1:8001`
+
+**Terminal 3 - Background jobs (optional, keep running):**
+```powershell
+cd M:\GUC\LeadForge
+venv\Scripts\Activate.ps1
+python -m app.worker
+```
+
+**One-time setup (run once):**
+```powershell
+copy .env.example .env
+# edit .env and set DATABASE_URL=postgresql+psycopg2://postgres:@127.0.0.1:54320/postgres
+python -m scripts.seed
+```
+
+**Admin login:** open `http://127.0.0.1:8001/auth/login`
+- Email: `admin@leadforge.local`
+- Password: `AdminPass123!` (change `ADMIN_PASSWORD` in `.env` before seeding)
 
 ## Admin user
 
-After seeding, sign in at `http://127.0.0.1:8000/auth/login` with:
+After seeding, sign in at `http://127.0.0.1:8001/auth/login` with:
 
 - Email: `admin@leadforge.local`
 - Password: `AdminPass123!` (change `ADMIN_PASSWORD` in `.env` before seeding for production)
@@ -58,23 +67,23 @@ The admin can access `/admin` to view users, orgs, jobs, MRR, failure rate; susp
 
 Add screenshots here after you run the app locally. Capture these pages and paste the image files into `docs/screenshots/`, then reference them:
 
-1. **Login page** — `http://127.0.0.1:8000/auth/login`
+1. **Login page** — `http://127.0.0.1:8001/auth/login`
    ```
    ![Admin login](docs/screenshots/admin-login.png)
    ```
-2. **Dashboard** — `http://127.0.0.1:8000/dashboard` (credits, plan, recent jobs)
+2. **Dashboard** — `http://127.0.0.1:8001/dashboard` (credits, plan, recent jobs)
    ```
    ![Dashboard](docs/screenshots/dashboard.png)
    ```
-3. **Jobs page** — `http://127.0.0.1:8000/jobs/<id>` (status polling via HTMX)
+3. **Jobs page** — `http://127.0.0.1:8001/jobs/<id>` (status polling via HTMX)
    ```
    ![Job status](docs/screenshots/job-status.png)
    ```
-4. **Leads table** — `http://127.0.0.1:8000/leads` (filter, sort, bulk status, export)
+4. **Leads table** — `http://127.0.0.1:8001/leads` (filter, sort, bulk status, export)
    ```
    ![Leads table](docs/screenshots/leads-table.png)
    ```
-5. **Admin panel** — `http://127.0.0.1:8000/admin` (overview, users/orgs, jobs, plans)
+5. **Admin panel** — `http://127.0.0.1:8001/admin` (overview, users/orgs, jobs, plans)
    ```
    ![Admin panel](docs/screenshots/admin-panel.png)
    ```
