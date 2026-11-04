@@ -1,32 +1,102 @@
 /* ==========================================================================
-   LeadForge Design Tokens — exact values from docs/design/LeadForge Design System.html
-   Light theme (L) and Dark theme (D) as defined in the design JS
+   LeadForge Design Tokens & Component Styles
+   Exact values from Brand.dc.html (Design System)
    ========================================================================== */
 
-/* Light theme — applied inline on root .lf div via --bg,--surf,etc. */
-/* Dark theme — same vars, different values */
+:root, [data-theme="light"] {
+  --bg: #F3F4F6;
+  --surf: #FFFFFF;
+  --surf2: #EBEEF2;
+  --line: #D9DEE5;
+  --fg: #0E1116;
+  --mut: #4B5563;
+  --acc: #C8431A;
+  --accfg: #FFFFFF;
+  --acc2: #0B7A75;
+  --acc2fg: #FFFFFF;
+  --ok: #157347;
+  --okfg: #FFFFFF;
+  --warn: #B45309;
+  --warnfg: #FFFFFF;
+  --bad: #B42318;
+  --badfg: #FFFFFF;
+  --ring: rgba(200, 67, 26, 0.22);
+  --shadow: 0 1px 2px rgba(16, 24, 40, 0.06), 0 10px 28px -10px rgba(16, 24, 40, 0.10);
+  --shadow-h: 0 18px 40px -14px rgba(16, 24, 40, 0.28);
+}
+
+[data-theme="dark"] {
+  --bg: #0B0D10;
+  --surf: #14181D;
+  --surf2: #1C2128;
+  --line: #2A313A;
+  --fg: #EEF1F5;
+  --mut: #9AA4B2;
+  --acc: #FF7A45;
+  --accfg: #1A0B04;
+  --acc2: #3DC9C2;
+  --acc2fg: #04201E;
+  --ok: #4ADE80;
+  --okfg: #04200F;
+  --warn: #FBBF24;
+  --warnfg: #2A1D00;
+  --bad: #F87171;
+  --badfg: #2A0705;
+  --ring: rgba(255, 122, 69, 0.28);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 28px -10px rgba(0, 0, 0, 0.5);
+  --shadow-h: 0 18px 44px -14px rgba(0, 0, 0, 0.7);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0B0D10;
+    --surf: #14181D;
+    --surf2: #1C2128;
+    --line: #2A313A;
+    --fg: #EEF1F5;
+    --mut: #9AA4B2;
+    --acc: #FF7A45;
+    --accfg: #1A0B04;
+    --acc2: #3DC9C2;
+    --acc2fg: #04201E;
+    --ok: #4ADE80;
+    --okfg: #04200F;
+    --warn: #FBBF24;
+    --warnfg: #2A1D00;
+    --bad: #F87171;
+    --badfg: #2A0705;
+    --ring: rgba(255, 122, 69, 0.28);
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 28px -10px rgba(0, 0, 0, 0.5);
+    --shadow-h: 0 18px 44px -14px rgba(0, 0, 0, 0.7);
+  }
+}
 
 /* ==========================================================================
-   Base
+   Base Typography & Global Element Resets
    ========================================================================== */
 html, body {
   margin: 0;
   padding: 0;
+  background: var(--bg);
+  color: var(--fg);
   font-family: 'Manrope', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
 }
 
 .lf {
   font-family: 'Manrope', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--fg);
   -webkit-font-smoothing: antialiased;
 }
 
-.lf h1, .lf h2, .lf h3, .lf .disp {
+.lf h1, .lf h2, .lf h3, .lf h4, .lf .disp {
   font-family: 'Sora', sans-serif;
   letter-spacing: -0.025em;
 }
 
-.lf .mono {
+.lf .mono, .mono {
   font-family: 'JetBrains Mono', monospace;
 }
 
@@ -49,7 +119,18 @@ html, body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .lf * {
+  .lf *,
+  .lf-bar,
+  .lf-line,
+  .lf-disc,
+  .lf-spinz,
+  .lf-cube,
+  .lf-scene,
+  .lf-stage,
+  .lf-prog,
+  .lf-toast,
+  .lf-modal,
+  .lf-view {
     animation-duration: 0.01ms !important;
     animation-delay: 0s !important;
     animation-iteration-count: 1 !important;
@@ -58,10 +139,17 @@ html, body {
 }
 
 /* ==========================================================================
-   Components (from design CSS)
+   Interactive Components (from Design System)
    ========================================================================== */
 .lf-btn {
   transition: transform 0.18s, box-shadow 0.18s, background 0.18s, border-color 0.18s, color 0.18s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  text-decoration: none;
+  box-sizing: border-box;
 }
 
 .lf-btn:hover {
@@ -71,6 +159,13 @@ html, body {
 
 .lf-btn:active {
   transform: translateY(0);
+}
+
+.lf-btn:disabled, .lf-btn[disabled] {
+  cursor: not-allowed;
+  opacity: 0.55;
+  transform: none !important;
+  box-shadow: none !important;
 }
 
 .lf-ghost:hover {
@@ -98,6 +193,7 @@ html, body {
 
 .lf-link {
   transition: color 0.15s;
+  cursor: pointer;
 }
 
 .lf-link:hover {
@@ -119,8 +215,8 @@ html, body {
 
 .lf-in:focus {
   outline: none;
-  border-color: var(--acc);
-  box-shadow: 0 0 0 3px var(--ring);
+  border-color: var(--acc) !important;
+  box-shadow: 0 0 0 3px var(--ring) !important;
 }
 
 .lf-logo {
@@ -145,6 +241,10 @@ html, body {
   animation: lf-pulse 2s infinite;
 }
 
+.lf-live {
+  animation: lf-pulse 2s infinite;
+}
+
 .lf-toast {
   animation: lf-toast 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
@@ -161,29 +261,52 @@ html, body {
   animation: lf-view 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
-.lf-fade {
+.lf-form {
   animation: lf-fade 0.35s both;
 }
 
-.lf-pop {
-  animation: lf-pop 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+@keyframes lf-spin {
+  to { transform: rotate(360deg); }
 }
 
-@keyframes lf-spin { to { transform: rotate(360deg); } }
-@keyframes lf-shim { from { background-position: 200% 0; } to { background-position: -200% 0; } }
-@keyframes lf-toast { from { opacity: 0; transform: translateY(14px) scale(0.96); } to { opacity: 1; transform: none; } }
-@keyframes lf-pop { from { opacity: 0; transform: translateY(12px) scale(0.97); } to { opacity: 1; transform: none; } }
-@keyframes lf-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes lf-shim {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
+@keyframes lf-toast {
+  from { opacity: 0; transform: translateY(14px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes lf-pop {
+  from { opacity: 0; transform: translateY(12px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes lf-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes lf-view {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 @keyframes lf-pulse {
   0% { box-shadow: 0 0 0 0 var(--acc); }
   70% { box-shadow: 0 0 0 10px transparent; }
   100% { box-shadow: 0 0 0 0 transparent; }
 }
-@keyframes lf-view { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 
 /* ==========================================================================
-   3D Bar chart (lf-bar)
+   3D Bar Chart (lf-bar, lf-stage, lf-bt, lf-bs)
    ========================================================================== */
+.lf-stage {
+  animation: lf-sway 10s ease-in-out infinite;
+}
+
 .lf-bar {
   position: relative;
   width: 56px;
@@ -237,7 +360,9 @@ html, body {
   border-radius: 6px;
   font-size: 12px;
   font-weight: 600;
+  font-family: 'JetBrains Mono', monospace;
   transition: opacity 0.15s;
+  z-index: 10;
 }
 
 .lf-bar:hover::after {
@@ -249,8 +374,13 @@ html, body {
   to { height: var(--h, 100px); }
 }
 
+@keyframes lf-sway {
+  0%, 100% { transform: perspective(1100px) rotateY(-9deg) rotateX(5deg); }
+  50% { transform: perspective(1100px) rotateY(9deg) rotateX(3deg); }
+}
+
 /* ==========================================================================
-   Line chart (lf-line)
+   Line Chart (lf-line, lf-area, lf-pt)
    ========================================================================== */
 .lf-line {
   stroke-dasharray: 1;
@@ -258,12 +388,25 @@ html, body {
   animation: lf-draw 1.8s cubic-bezier(0.3, 0.7, 0.2, 1) 0.2s forwards;
 }
 
+.lf-area {
+  opacity: 0;
+  animation: lf-fade 0.8s ease 1.2s forwards;
+}
+
+.lf-pt {
+  transition: r 0.15s;
+}
+
+.lf-pt:hover {
+  r: 7;
+}
+
 @keyframes lf-draw {
   to { stroke-dashoffset: 0; }
 }
 
 /* ==========================================================================
-   Donut / disc (lf-disc)
+   Donut 3D (lf-dwrap, lf-disc, lf-spinz, lf-layer)
    ========================================================================== */
 .lf-dwrap {
   perspective: 1000px;
@@ -297,12 +440,60 @@ html, body {
 }
 
 @keyframes lf-spinz {
-  from { transform: rotateZ(0); }
+  from { transform: rotateZ(0deg); }
   to { transform: rotateZ(360deg); }
 }
 
 /* ==========================================================================
-   Stage / scene (lf-stage, lf-scene)
+   3D Rotating Cube (lf-cw, lf-cube, lf-f, lf-f1 to lf-f6)
+   ========================================================================== */
+.lf-cw {
+  perspective: 900px;
+  width: 150px;
+  height: 150px;
+}
+
+.lf-cube {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  animation: lf-rot 18s linear infinite;
+}
+
+.lf-cw:hover .lf-cube {
+  animation-duration: 5s;
+}
+
+.lf-f {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: var(--accfg);
+  font-size: 16px;
+  font-weight: 700;
+  backface-visibility: visible;
+}
+
+.lf-f1 { transform: translateZ(75px); }
+.lf-f2 { transform: rotateY(90deg) translateZ(75px); }
+.lf-f3 { transform: rotateY(180deg) translateZ(75px); }
+.lf-f4 { transform: rotateY(-90deg) translateZ(75px); }
+.lf-f5 { transform: rotateX(90deg) translateZ(75px); }
+.lf-f6 { transform: rotateX(-90deg) translateZ(75px); }
+
+@keyframes lf-rot {
+  from { transform: rotateX(-22deg) rotateY(0deg); }
+  to { transform: rotateX(-22deg) rotateY(360deg); }
+}
+
+/* ==========================================================================
+   Isometric Scene (lf-scene, lf-l1, lf-l2, lf-l3)
    ========================================================================== */
 .lf-scene {
   transform-style: preserve-3d;
@@ -314,30 +505,25 @@ html, body {
   transform: rotateX(4deg) rotateY(-8deg);
 }
 
-.lf-stage {
-  animation: lf-sway 10s ease-in-out infinite;
+.lf-l1 {
+  animation: lf-float 6s ease-in-out infinite;
 }
 
-.lf-area {
-  opacity: 0;
-  animation: lf-fade 0.8s ease 1.2s forwards;
+.lf-l2 {
+  animation: lf-float 7s ease-in-out -2s infinite;
 }
 
-.lf-pt {
-  transition: r 0.15s;
+.lf-l3 {
+  animation: lf-float 8s ease-in-out -4s infinite;
 }
 
-.lf-pt:hover {
-  r: 7;
-}
-
-@keyframes lf-sway {
-  0%, 100% { transform: perspective(1100px) rotateY(-9deg) rotateX(5deg); }
-  50% { transform: perspective(1100px) rotateY(9deg) rotateX(3deg); }
+@keyframes lf-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
 }
 
 /* ==========================================================================
-   Progress bar (lf-prog)
+   Progress Bar (lf-prog)
    ========================================================================== */
 .lf-prog {
   background: repeating-linear-gradient(45deg, var(--acc), var(--acc) 8px, var(--acc2) 8px, var(--acc2) 16px);
@@ -350,148 +536,40 @@ html, body {
 }
 
 /* ==========================================================================
-   Utilities (modal overlay, toast container, badges, stat cards)
+   Badges & Stat Cards
    ========================================================================== */
-.lf-ov {
-  position: fixed;
-  inset: 0;
-  background: rgba(8, 10, 14, 0.45);
-  backdrop-filter: blur(2px);
-  z-index: 400;
-}
-
-.lf-modal {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 500;
-}
-
-.lf-modal > .lf-card {
-  max-width: 560px;
-  width: 92%;
-  max-height: 85vh;
-  overflow-y: auto;
-}
-
-.lf-toast-container {
-  position: fixed;
-  right: 24px;
-  bottom: 24px;
-  z-index: 60;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  pointer-events: none;
-}
-
-.lf-toast {
-  pointer-events: auto;
-  background: var(--surf);
-  border: 1px solid var(--line);
-  border-left: 4px solid var(--ok);
-  border-radius: 14px;
-  color: var(--fg);
-  padding: 14px 16px;
-  box-shadow: var(--shadow-h);
-  max-width: 360px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.lf-toast.kind-ok { border-left-color: var(--ok); }
-.lf-toast.kind-warn { border-left-color: var(--acc); }
-.lf-toast.kind-bad { border-left-color: var(--bad); }
-
-.lf-toast-close {
-  background: none;
-  border: none;
-  color: var(--mut);
-  cursor: pointer;
-  padding: 2px;
-  line-height: 1;
-}
-
-.badge {
+.lf-badge, .badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 2px 10px;
+  gap: 7px;
+  padding: 4px 12px;
   border-radius: 999px;
-  font-size: 12px;
-  font-weight: 600;
-  border: 1px solid var(--line);
-  background: var(--surf2);
-  color: var(--fg);
-}
-
-.badge.ok { background: #e7f7ec; color: #0e5a34; border-color: #b9e8ca; }
-.badge.warn { background: #fdf0e0; color: #8a3d06; border-color: #f2c99e; }
-.badge.bad { background: #fbeaea; color: #8a1f11; border-color: #e8b7b0; }
-.badge.acc { background: #e3f3f2; color: #085b57; border-color: #b8e3e0; }
-
-.stat-card {
-  background: var(--surf);
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 18px 20px;
-}
-
-.stat-card .value {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 28px;
+  font-size: 13px;
   font-weight: 700;
-  color: var(--fg);
-}
-
-.stat-card .label {
-  font-size: 12px;
-  color: var(--mut);
-  margin-top: 4px;
-}
-
-.stat-card .delta {
-  font-size: 12px;
-  margin-top: 6px;
-}
-
-.delta.ok { color: var(--ok); }
-.delta.bad { color: var(--bad); }
-
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 48px 24px;
-  text-align: center;
-  color: var(--mut);
-}
-
-.empty-state .icon {
-  font-size: 48px;
-  margin-bottom: 16px;
-  opacity: 0.5;
-}
-
-.progress-wrap {
-  height: 8px;
+  border: 1px solid var(--line);
   background: var(--surf2);
-  border-radius: 4px;
-  overflow: hidden;
-  margin-top: 8px;
+  color: var(--fg);
+  line-height: 1.4;
+  white-space: nowrap;
 }
 
-.progress-bar {
-  height: 100%;
-  background: var(--acc);
-  border-radius: 4px;
-  transition: width 0.3s ease;
+.lf-badge .dot, .badge .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
 }
 
+.badge.ok, .lf-badge.ok { border-color: var(--line); color: var(--fg); }
+.badge.ok .dot, .lf-badge.ok .dot { background: var(--ok); }
+.badge.warn, .lf-badge.warn { border-color: var(--line); color: var(--fg); }
+.badge.warn .dot, .lf-badge.warn .dot { background: var(--warn); }
+.badge.bad, .lf-badge.bad { border-color: var(--line); color: var(--fg); }
+.badge.bad .dot, .lf-badge.bad .dot { background: var(--bad); }
+.badge.acc, .lf-badge.acc { border-color: var(--line); color: var(--fg); }
+.badge.acc .dot, .lf-badge.acc .dot { background: var(--acc); }
+
+/* Accessibility utility */
 .sr-only {
   position: absolute;
   width: 1px;

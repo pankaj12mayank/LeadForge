@@ -3,32 +3,63 @@
 {% block title %}Audit Log — LeadForge{% endblock %}
 
 {% block content %}
-<h2 class="disp" style="font-size:30px;margin:0 0 16px;font-family:Sora;">Audit log</h2>
+<div class="lf-view" style="display:flex;flex-direction:column;gap:20px;">
 
-<div class="lf-card" style="border:1px solid var(--line);border-radius:12px;overflow:hidden;">
-<table style="width:100%;border-collapse:collapse;">
-  <thead>
-    <tr style="background:var(--surf2);">
-      <th style="padding:12px 16px;border-bottom:1px solid var(--line);font-size:12px;font-weight:600;color:var(--mut);text-align:left;">Time</th>
-      <th style="padding:12px 16px;border-bottom:1px solid var(--line);font-size:12px;font-weight:600;color:var(--mut);text-align:left;">Actor</th>
-      <th style="padding:12px 16px;border-bottom:1px solid var(--line);font-size:12px;font-weight:600;color:var(--mut);text-align:left;">Action</th>
-      <th style="padding:12px 16px;border-bottom:1px solid var(--line);font-size:12px;font-weight:600;color:var(--mut);text-align:left;">Target</th>
-      <th style="padding:12px 16px;border-bottom:1px solid var(--line);font-size:12px;font-weight:600;color:var(--mut);text-align:left;">Meta</th>
-    </tr>
-  </thead>
-  <tbody>
-  {% for log in logs %}
-    <tr style="border-bottom:1px solid var(--line);">
-      <td style="padding:12px 16px;font-size:12px;color:var(--fg);font-family:'JetBrains Mono',monospace;">{{ log.created_at.strftime('%b %d, %H:%M') if log.created_at else '-' }}</td>
-      <td style="padding:12px 16px;font-size:13px;color:var(--fg);">{{ log.actor_id if log.actor_id else 'system' }}</td>
-      <td style="padding:12px 16px;font-size:13px;color:var(--fg);">{{ log.action }}</td>
-      <td style="padding:12px 16px;font-size:13px;color:var(--mut);">{{ log.target or '-' }}</td>
-      <td style="padding:12px 16px;font-size:12px;color:var(--mut);font-family:'JetBrains Mono',monospace;">{{ log.meta if log.meta else '{}' }}</td>
-    </tr>
-  {% else %}
-    <tr><td colspan="5" style="padding:24px 16px;color:var(--mut);text-align:center;">No audit events.</td></tr>
-  {% endfor %}
-  </tbody>
-</table>
+  <div class="lf-card" style="border:1px solid var(--line);border-radius:20px;background:var(--surf);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="overflow-x:auto;">
+      <table style="width:100%;min-width:720px;border-collapse:collapse;font-size:14px;">
+        <thead>
+          <tr style="text-align:left;color:var(--mut);font-size:12px;letter-spacing:.04em;border-bottom:1px solid var(--line);">
+            <th style="padding:16px 20px;">WHEN</th>
+            <th style="padding:16px 10px;">ACTOR</th>
+            <th style="padding:16px 10px;">ACTION</th>
+            <th style="padding:16px 10px;">TARGET</th>
+            <th style="padding:16px 20px 16px 10px;">METADATA</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for e in logs %}
+          <tr class="lf-row" style="border-top:1px solid var(--line);">
+            
+            <!-- Timestamp -->
+            <td class="mono" style="padding:12px 20px;color:var(--mut);font-size:13px;white-space:nowrap;">
+              {{ e.created_at.strftime('%b %d, %H:%M:%S') if e.created_at else '-' }}
+            </td>
+
+            <!-- Actor -->
+            <td class="mono" style="padding:12px 10px;font-size:13px;color:var(--fg);">
+              {{ 'User #' ~ e.actor_id if e.actor_id else 'System' }}
+            </td>
+
+            <!-- Action -->
+            <td style="padding:12px 10px;font-weight:700;color:var(--fg);">
+              <span style="display:inline-block;padding:3px 8px;border-radius:6px;background:var(--surf2);font-size:13px;border:1px solid var(--line);">
+                {{ e.action }}
+              </span>
+            </td>
+
+            <!-- Target -->
+            <td style="padding:12px 10px;color:var(--mut);font-size:13px;">
+              {{ e.target or '-' }}
+            </td>
+
+            <!-- Metadata -->
+            <td class="mono" style="padding:12px 20px 12px 10px;font-size:12px;color:var(--mut);max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+              {{ e.meta|tojson if e.meta else '{}' }}
+            </td>
+
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="5" style="padding:48px 20px;text-align:center;color:var(--mut);">
+              No audit log entries recorded yet.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
 </div>
 {% endblock %}

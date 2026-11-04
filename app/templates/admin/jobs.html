@@ -3,51 +3,113 @@
 {% block title %}Jobs Monitor — LeadForge{% endblock %}
 
 {% block content %}
-<h2 class="disp" style="font-size:30px;margin:0 0 16px;font-family:Sora;">Jobs monitor</h2>
+<div class="lf-view" style="display:flex;flex-direction:column;gap:20px;">
 
-<div class="lf-card" style="border:1px solid var(--line);border-radius:12px;overflow:hidden;">
-<table style="width:100%;border-collapse:collapse;">
-  <thead>
-    <tr style="background:var(--surf2);">
-      <th style="padding:12px 16px;border-bottom:1px solid var(--line);font-size:12px;font-weight:600;color:var(--mut);text-align:left;">Job</th>
-      <th style="padding:12px 16px;border-bottom:1px solid var(--line);font-size:12px;font-weight:600;color:var(--mut);text-align:left;">Org</th>
-      <th style="padding:12px 16px;border-bottom:1px solid var(--line);font-size:12px;font-weight:600;color:var(--mut);text-align:left;">Type</th>
-      <th style="padding:12px 16px;border-bottom:1px solid var(--line);font-size:12px;font-weight:600;color:var(--mut);text-align:left;">Status</th>
-      <th style="padding:12px 16px;border-bottom:1px solid var(--line);font-size:12px;font-weight:600;color:var(--mut);text-align:left;">Attempts</th>
-      <th style="padding:12px 16px;border-bottom:1px solid var(--line);font-size:12px;font-weight:600;color:var(--mut);text-align:left;">Error</th>
-      <th style="padding:12px 16px;border-bottom:1px solid var(--line);font-size:12px;font-weight:600;color:var(--mut);text-align:left;">Actions</th>
-    </tr>
-  </thead>
-  <tbody>
-  {% for j in jobs %}
-    <tr style="border-bottom:1px solid var(--line);">
-      <td style="padding:12px 16px;font-size:13px;color:var(--fg);font-weight:600;">#{{ j.id }}</td>
-      <td style="padding:12px 16px;font-size:13px;color:var(--fg);">{{ j.org_id }}</td>
-      <td style="padding:12px 16px;font-size:13px;color:var(--fg);">{{ j.type }}</td>
-      <td style="padding:12px 16px;font-size:12px;">
-        <span class="badge {{ 'ok' if j.status=='done' else 'warn' if j.status=='running' else 'bad' if j.status=='failed' else '' }}">
-          {{ j.status }}
-        </span>
-      </td>
-      <td style="padding:12px 16px;font-size:13px;font-family:'JetBrains Mono',monospace;">{{ j.attempts }}</td>
-      <td style="padding:12px 16px;font-size:12px;color:var(--mut);">{{ j.error or '-' }}</td>
-      <td style="padding:12px 16px;">
-        <div style="display:flex;gap:6px;">
-          {% if j.status == 'failed' %}
-          <form method="post" action="/admin/jobs/{{ j.id }}/retry" hx-post="/admin/jobs/{{ j.id }}/retry" hx-swap="none">
-            <button class="lf-btn lf-ghost" style="padding:6px 10px;border-radius:6px;border:1px solid var(--line);font-size:12px;">Retry</button>
-          </form>
-          {% endif %}
-          <form method="post" action="/admin/jobs/{{ j.id }}/cancel" hx-post="/admin/jobs/{{ j.id }}/cancel" hx-swap="none">
-            <button class="lf-btn lf-ghost" style="padding:6px 10px;border-radius:6px;border:1px solid var(--line);font-size:12px;color:var(--bad);">Cancel</button>
-          </form>
-        </div>
-      </td>
-    </tr>
-  {% else %}
-    <tr><td colspan="7" style="padding:24px 16px;color:var(--mut);text-align:center;">No jobs.</td></tr>
-  {% endfor %}
-  </tbody>
-</table>
+  <div id="jobs-table-container" class="lf-card" style="border:1px solid var(--line);border-radius:20px;background:var(--surf);box-shadow:var(--shadow);overflow:hidden;">
+    <div style="overflow-x:auto;">
+      <table style="width:100%;min-width:820px;border-collapse:collapse;font-size:14px;">
+        <thead>
+          <tr style="text-align:left;color:var(--mut);font-size:12px;letter-spacing:.04em;border-bottom:1px solid var(--line);">
+            <th style="padding:16px 20px;">JOB</th>
+            <th style="padding:16px 10px;">ORGANIZATION</th>
+            <th style="padding:16px 10px;">LEADS / TARGET</th>
+            <th style="padding:16px 10px;">STATUS</th>
+            <th style="padding:16px 10px;">NOTE / ERROR</th>
+            <th style="padding:16px 20px 16px 10px;text-align:right;">ACTIONS</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for j in jobs %}
+          {% set status_val = j.status.value if j.status.value is defined else j.status %}
+          <tr class="lf-row" style="border-top:1px solid var(--line);">
+            
+            <!-- Job ID & query -->
+            <td style="padding:12px 20px;">
+              <div class="mono" style="font-weight:700;color:var(--fg);">#{{ j.id }}</div>
+              <div style="font-size:12px;color:var(--mut);margin-top:2px;">
+                {{ (j.payload.get('query') if j.payload and j.payload.get('query') else j.type)|capitalize }}
+              </div>
+            </td>
+
+            <!-- Organization -->
+            <td style="padding:12px 10px;font-weight:600;color:var(--fg);">
+              {{ orgs.get(j.org_id, 'Org #' ~ j.org_id) }}
+            </td>
+
+            <!-- Leads / Target -->
+            <td class="mono" style="padding:12px 10px;color:var(--fg);">
+              {% if j.payload and j.payload.get('target_count') %}
+                {{ j.payload.get('target_count') }} target
+              {% else %}
+                {{ j.attempts }} attempts
+              {% endif %}
+            </td>
+
+            <!-- Status -->
+            <td style="padding:12px 10px;">
+              <span style="display:inline-flex;align-items:center;gap:7px;padding:6px 12px;border-radius:999px;background:var(--surf2);border:1px solid var(--line);font-size:13px;font-weight:700;color:var(--fg);">
+                {% if status_val == 'done' %}
+                <span style="width:8px;height:8px;border-radius:50%;background:var(--ok);"></span> Done
+                {% elif status_val == 'running' %}
+                <span style="width:8px;height:8px;border-radius:50%;background:var(--acc2);"></span> Running
+                {% elif status_val == 'queued' %}
+                <span style="width:8px;height:8px;border-radius:50%;background:var(--warn);"></span> Queued
+                {% else %}
+                <span style="width:8px;height:8px;border-radius:50%;background:var(--bad);"></span> Failed
+                {% endif %}
+              </span>
+            </td>
+
+            <!-- Note / Error -->
+            <td style="padding:12px 10px;color:var(--mut);font-size:13px;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+              {% if j.error %}
+                <span style="color:var(--bad);" title="{{ j.error }}">{{ j.error }}</span>
+              {% else %}
+                <span class="mono">{{ j.created_at.strftime('%b %d, %H:%M') if j.created_at else '-' }}</span>
+              {% endif %}
+            </td>
+
+            <!-- Actions -->
+            <td style="padding:12px 20px 12px 10px;text-align:right;white-space:nowrap;">
+              <div style="display:inline-flex;align-items:center;gap:8px;">
+                {% if status_val == 'failed' or status_val == 'queued' %}
+                <form method="post" action="/admin/jobs/{{ j.id }}/retry"
+                      hx-post="/admin/jobs/{{ j.id }}/retry"
+                      hx-target="#jobs-table-container"
+                      hx-select="#jobs-table-container"
+                      style="margin:0;">
+                  <button type="submit" class="lf-btn lf-ghost" style="padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surf2);color:var(--fg);font-weight:700;font-size:13px;min-height:44px;">
+                    Retry
+                  </button>
+                </form>
+                {% endif %}
+
+                {% if status_val == 'running' or status_val == 'queued' %}
+                <form method="post" action="/admin/jobs/{{ j.id }}/cancel"
+                      hx-post="/admin/jobs/{{ j.id }}/cancel"
+                      hx-target="#jobs-table-container"
+                      hx-select="#jobs-table-container"
+                      style="margin:0;">
+                  <button type="submit" class="lf-btn lf-ghost" style="padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:transparent;color:var(--bad);font-weight:700;font-size:13px;min-height:44px;">
+                    Cancel
+                  </button>
+                </form>
+                {% endif %}
+              </div>
+            </td>
+
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="6" style="padding:48px 20px;text-align:center;color:var(--mut);">
+              No background jobs found.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
 </div>
 {% endblock %}

@@ -1,56 +1,145 @@
 {% extends "layouts/app.html" %}
+{% from "components/macros.html" import badge, button, empty_state %}
+
 {% set active_page = 'searches' %}
-{% block title %}Find Leads — LeadForge{% endblock %}
+{% block title %}Searches &amp; Jobs — LeadForge{% endblock %}
 
 {% block content %}
-<h2 class="disp" style="font-size:30px;margin:0 0 8px;font-family:Sora;">Find leads</h2>
-<p style="color:var(--mut);font-size:13px;margin:0 0 24px;">Type one natural-language query. We plan, search, enrich, score &mdash; you get leads.</p>
+<div class="lf-view" style="display:flex;flex-direction:column;gap:24px;">
 
-<div class="lf-card" style="border:1px solid var(--line);border-radius:16px;padding:28px;max-width:700px;">
-  <form id="search-form" hx-post="/searches" hx-target="#search-result" hx-swap="innerHTML">
-    <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
-
-    <div style="margin-bottom:16px;">
-      <label style="display:block;font-size:12px;font-weight:600;color:var(--fg);margin-bottom:6px;">Natural-language query</label>
-      <textarea name="query" rows="3" required
-        style="width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surf);color:var(--fg);font-size:15px;font-family:inherit;"
-        placeholder="e.g. India fintech startups whose founders do manual reporting, 20 leads"></textarea>
+  <!-- TOP SEARCH FORM CARD -->
+  <div class="lf-card" style="padding:32px;border:1px solid var(--line);border-radius:22px;background:var(--surf);box-shadow:var(--shadow);box-sizing:border-box;max-width:800px;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;">
+      <div>
+        <h2 style="margin:0;font-size:22px;font-weight:700;color:var(--fg);font-family:'Sora',sans-serif;">Find new leads</h2>
+        <p style="margin:6px 0 0;font-size:14px;color:var(--mut);line-height:1.5;">Type one natural-language sentence. LeadForge plans sources, dedupes, enriches, and scores each lead.</p>
+      </div>
+      <span class="mono" style="font-size:12px;color:var(--acc);font-weight:600;padding:4px 10px;border-radius:8px;background:rgba(200,67,26,0.1);">1 credit = 1 lead</span>
     </div>
 
-    <div style="margin-bottom:20px;">
-      <label style="display:block;font-size:12px;font-weight:600;color:var(--fg);margin-bottom:6px;">Target leads</label>
-      <input type="number" name="target_count" value="10" min="1" max="500"
-        style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surf);color:var(--fg);font-size:14px;">
-      <p style="font-size:12px;color:var(--mut);margin-top:4px;">1 credit per lead delivered. Credits reserved before the job, refunded if unused.</p>
+    <form method="post" action="/searches" id="page-search-form" onsubmit="return lfValidatePageSearch(event)" style="margin-top:24px;display:flex;flex-direction:column;gap:18px;">
+      <div>
+        <label for="page-q" style="font-size:13px;font-weight:700;color:var(--fg);">Search query <span style="color:var(--acc);">*</span></label>
+        <textarea id="page-q" name="query" required rows="3" placeholder="e.g. India fintech startups whose founders do manual reporting, 20 leads"
+          class="lf-in" style="margin-top:6px;width:100%;box-sizing:border-box;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--fg);font-size:15px;line-height:1.5;resize:vertical;font-family:inherit;"></textarea>
+      </div>
+
+      <div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;">
+        <div style="flex:1 1 200px;">
+          <label for="page-tc" style="font-size:13px;font-weight:700;color:var(--fg);">Target leads</label>
+          <input id="page-tc" name="target_count" type="number" min="1" max="500" value="10" oninput="lfUpdatePageReserved(this.value)"
+            class="lf-in" style="margin-top:6px;width:100%;box-sizing:border-box;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--fg);font-size:15px;min-height:44px;">
+        </div>
+
+        <div style="flex:1 1 240px;padding:12px 16px;border-radius:12px;background:var(--surf2);border:1px solid var(--line);margin-top:24px;box-sizing:border-box;">
+          <div style="font-size:12px;color:var(--mut);font-weight:600;">Reserved credits required</div>
+          <div id="page-reserved-text" class="mono" style="font-size:18px;font-weight:700;color:var(--fg);margin-top:2px;">10 credits</div>
+        </div>
+      </div>
+
+      <div id="page-credit-error" style="display:none;padding:10px 14px;border-radius:10px;background:rgba(180,35,24,0.1);border:1px solid var(--bad);color:var(--bad);font-size:13px;font-weight:600;">
+        Insufficient credits. You need <span id="page-needed-credits">10</span> credits, but have only <span id="page-avail-credits">{{ credits }}</span> available.
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;margin-top:8px;">
+        <button type="submit" id="page-search-submit" class="lf-btn" style="padding:12px 28px;border:0;border-radius:12px;background:var(--acc);color:var(--accfg);font-weight:700;font-size:15px;min-height:44px;">
+          Launch search job
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- SAVED SEARCHES & PAST JOBS -->
+  <div class="lf-card" style="border:1px solid var(--line);border-radius:20px;background:var(--surf);box-shadow:var(--shadow);box-sizing:border-box;overflow:hidden;">
+    <div style="padding:20px 24px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <h3 style="margin:0;font-size:18px;font-weight:700;color:var(--fg);">Search history</h3>
+        <div style="font-size:13px;color:var(--mut);margin-top:2px;">Queries executed and scheduled for your organization</div>
+      </div>
     </div>
 
-    <button class="lf-btn" style="padding:12px 28px;border-radius:10px;background:var(--acc);color:var(--accfg);border:none;font-weight:600;font-size:15px;">Create search &amp; start job</button>
-  </form>
+    {% if searches %}
+    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+      <table style="width:100%;border-collapse:collapse;text-align:left;font-size:14px;">
+        <thead>
+          <tr style="background:var(--surf2);border-bottom:1px solid var(--line);">
+            <th style="padding:12px 18px;font-size:12px;font-weight:700;color:var(--mut);text-transform:uppercase;">Search Query</th>
+            <th style="padding:12px 18px;font-size:12px;font-weight:700;color:var(--mut);text-transform:uppercase;">Recurring</th>
+            <th style="padding:12px 18px;font-size:12px;font-weight:700;color:var(--mut);text-transform:uppercase;">Jobs</th>
+            <th style="padding:12px 18px;font-size:12px;font-weight:700;color:var(--mut);text-transform:uppercase;">Created</th>
+            <th style="padding:12px 18px;font-size:12px;font-weight:700;color:var(--mut);text-transform:uppercase;text-align:right;">Latest Run</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in searches %}
+          <tr class="lf-row" style="border-bottom:1px solid var(--line);">
+            <td style="padding:14px 18px;color:var(--fg);font-weight:600;max-width:360px;">
+              {{ s.query }}
+            </td>
+            <td style="padding:14px 18px;">
+              {% if s.is_saved %}
+                {{ badge("Recurring", kind="ok") }}
+              {% else %}
+                <span class="mono" style="font-size:12px;color:var(--mut);">One-shot</span>
+              {% endif %}
+            </td>
+            <td class="mono" style="padding:14px 18px;color:var(--fg);font-weight:600;">
+              {{ s.jobs|length if s.jobs else 1 }} job{{ 's' if (s.jobs|length if s.jobs else 1) != 1 else '' }}
+            </td>
+            <td class="mono" style="padding:14px 18px;font-size:13px;color:var(--mut);">
+              {{ s.created_at.strftime('%d %b, %H:%M') if s.created_at else '-' }}
+            </td>
+            <td style="padding:14px 18px;text-align:right;">
+              {% set latest_j = s.jobs[0] if s.jobs and s.jobs|length > 0 else None %}
+              {% if latest_j %}
+              <a href="/jobs/{{ latest_j.id }}" class="lf-link" style="color:var(--acc);font-weight:700;font-size:13px;">View Job #{{ latest_j.id }} &rarr;</a>
+              {% else %}
+              <span class="mono" style="font-size:12px;color:var(--mut);">-</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div style="padding:48px 24px;">
+      {{ empty_state(title="No searches launched yet", description="Launch your first query above to start sourcing contacts.") }}
+    </div>
+    {% endif %}
+  </div>
 
-  <div id="search-result" style="margin-top:16px;"></div>
 </div>
 
-<h3 style="font-size:16px;margin:32px 0 12px;font-family:Sora;">Saved searches</h3>
-<div class="lf-card" style="border:1px solid var(--line);border-radius:12px;overflow:hidden;">
-<table style="width:100%;border-collapse:collapse;">
-  <thead>
-    <tr>
-      <th style="text-align:left;padding:12px 16px;border-bottom:1px solid var(--line);font-size:12px;font-weight:600;color:var(--mut);">Query</th>
-      <th style="text-align:left;padding:12px 16px;border-bottom:1px solid var(--line);font-size:12px;font-weight:600;color:var(--mut);">Saved</th>
-      <th style="text-align:left;padding:12px 16px;border-bottom:1px solid var(--line);font-size:12px;font-weight:600;color:var(--mut);">Created</th>
-    </tr>
-  </thead>
-  <tbody>
-  {% for s in searches %}
-    <tr style="border-bottom:1px solid var(--line);">
-      <td style="padding:12px 16px;font-size:13px;color:var(--fg);">{{ s.query }}</td>
-      <td style="padding:12px 16px;font-size:12px;"><span class="badge {{ 'ok' if s.is_saved else '' }}">{{ 'Yes' if s.is_saved else 'No' }}</span></td>
-      <td style="padding:12px 16px;font-size:12px;color:var(--mut);font-family:'JetBrains Mono',monospace;">{{ s.created_at.strftime('%b %d, %H:%M') if s.created_at else '-' }}</td>
-    </tr>
-  {% else %}
-    <tr><td colspan="3" style="padding:24px 16px;color:var(--mut);text-align:center;">No searches yet.</td></tr>
-  {% endfor %}
-  </tbody>
-</table>
-</div>
+<script>
+  var lfCreditsAvail = {{ credits if credits is defined and credits is not none else 10 }};
+  function lfUpdatePageReserved(val) {
+    var count = parseInt(val, 10) || 0;
+    var el = document.getElementById('page-reserved-text');
+    if (el) el.textContent = count + ' credit' + (count === 1 ? '' : 's');
+    var err = document.getElementById('page-credit-error');
+    var submit = document.getElementById('page-search-submit');
+    if (count > lfCreditsAvail) {
+      if (err) {
+        err.style.display = 'block';
+        document.getElementById('page-needed-credits').textContent = count;
+      }
+      if (submit) submit.disabled = true;
+    } else {
+      if (err) err.style.display = 'none';
+      if (submit) submit.disabled = false;
+    }
+  }
+
+  function lfValidatePageSearch(e) {
+    var input = document.getElementById('page-tc');
+    var count = parseInt(input ? input.value : '10', 10) || 10;
+    if (count > lfCreditsAvail) {
+      e.preventDefault();
+      lfShowToast('bad', 'Insufficient credits', 'You need ' + count + ' credits for this search, but have only ' + lfCreditsAvail + '.');
+      return false;
+    }
+    return true;
+  }
+</script>
 {% endblock %}

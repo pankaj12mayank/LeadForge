@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.auth.deps import current_user
 from app.config import settings
-from app.db import SessionLocal, get_db
+from app.db import get_db
 from app.models import Plan
 
 router = APIRouter()
@@ -23,8 +23,9 @@ def _render(request: Request, template: str, status_code: int = 200, **ctx) -> H
 
 
 @router.get("/", name="landing")
-def landing(request: Request):
-    return _render(request, "landing.html", settings=settings)
+def landing(request: Request, db: Session = Depends(get_db)):
+    plans = db.query(Plan).order_by(Plan.price_inr).all()
+    return _render(request, "landing.html", plans=plans, settings=settings)
 
 
 @router.get("/pricing", name="pricing")

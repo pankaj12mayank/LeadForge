@@ -1,65 +1,83 @@
 {% extends "layouts/public.html" %}
-{% block title %}Reset password — LeadForge{% endblock %}
+{% block title %}Set New Password — LeadForge{% endblock %}
 
 {% block content %}
-<div class="lf" style="box-sizing:border-box;position:relative;display:flex;flex-wrap:wrap">
+<div class="lf" style="box-sizing:border-box;position:relative;display:flex;flex-wrap:wrap;min-height:100vh;">
 
-  <div style="flex:1 1 520px;min-width:0;background:var(--acc);color:var(--accfg);padding:48px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:space-between;gap:40px">
-    <a href="/" style="display:flex;align-items:center;gap:10px" aria-label="LeadForge landing page">
-      <svg width="36" height="36" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="10" fill="var(--accfg)"></rect><path d="M8 10h24v6H8z" fill="var(--acc)"></path><path d="M11 18h18l-5 8v3h-8v-3z" fill="var(--acc)"></path><rect x="12" y="31" width="16" height="3" rx="1.5" fill="var(--acc)"></rect></svg>
-      <span class="disp" style="font-weight:700;font-size:22px">LeadForge</span>
+  <!-- LEFT HERO PANEL -->
+  <div style="flex:1 1 480px;min-width:0;background:var(--acc);color:var(--accfg);padding:48px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:space-between;gap:40px;">
+    <a href="/" style="display:flex;align-items:center;gap:10px;text-decoration:none;" aria-label="LeadForge landing page">
+      <svg width="36" height="36" viewBox="0 0 40 40" aria-hidden="true">
+        <rect width="40" height="40" rx="10" fill="var(--accfg)"></rect>
+        <path d="M8 10h24v6H8z" fill="var(--acc)"></path>
+        <path d="M11 18h18l-5 8v3h-8v-3z" fill="var(--acc)"></path>
+        <rect x="12" y="31" width="16" height="3" rx="1.5" fill="var(--acc)"></rect>
+      </svg>
+      <span class="disp" style="font-weight:700;font-size:22px;color:var(--accfg);">LeadForge</span>
     </a>
-    <div style="display:flex;justify-content:center;padding:30px 0">
-      <div class="lf-cw"><div class="lf-cube">
-        <div class="lf-f lf-f1"><svg width="56" height="56" viewBox="0 0 40 40" aria-hidden="true"><path d="M8 10h24v6H8z" fill="var(--accfg)"></path><path d="M11 18h18l-5 8v3h-8v-3z" fill="var(--accfg)"></path><rect x="12" y="31" width="16" height="3" rx="1.5" fill="var(--accfg)"></rect></svg></div>
-        <div class="lf-f lf-f2 mono" style="font-weight:500">SEARCH</div>
-        <div class="lf-f lf-f3"><svg width="56" height="56" viewBox="0 0 40 40" aria-hidden="true"><path d="M8 10h24v6H8z" fill="var(--accfg)"></path><path d="M11 18h18l-5 8v3h-8v-3z" fill="var(--accfg)"></path><rect x="12" y="31" width="16" height="3" rx="1.5" fill="var(--accfg)"></rect></svg></div>
-        <div class="lf-f lf-f4 mono" style="font-weight:500">SCORE</div>
-        <div class="lf-f lf-f5 mono" style="font-weight:500">ENRICH</div>
-        <div class="lf-f lf-f6 mono" style="font-weight:500">EXPORT</div>
-      </div></div>
-    </div>
-  </div>
 
-  <div>
-    <h2 style="font-size:36px;line-height:1.1;margin:0;font-weight:700;max-width:420px">Your lead pipeline, one sentence at a time.</h2>
-    <p style="margin:14px 0 0;font-size:16px;line-height:1.6;max-width:420px;opacity:.92">Plan, search, enrich and score in a single job. Credits come back for anything not delivered.</p>
-  </div>
-
-  <div style="flex:1 1 520px;min-width:0;padding:48px 32px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px">
-    <div style="width:100%;max-width:420px;display:flex;justify-content:flex-end">
-      <button class="lf-btn lf-ghost" onclick="lfToggleTheme()" aria-label="Toggle light and dark theme" style="width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--surf);color:var(--fg);display:flex;align-items:center;justify-content:center">
-        {% if dark %}
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
-        {% else %}
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg>
-        {% endif %}
-      </button>
-    </div>
-
-    <div class="lf-form" style="width:100%;max-width:420px;padding:32px;border:1px solid var(--line);border-radius:24px;background:var(--surf);box-shadow:var(--shadow);box-sizing:border-box">
-      <h1 style="font-size:28px;margin:0;font-weight:700">Reset password</h1>
-      <p style="margin:8px 0 0;font-size:14px;color:var(--mut);line-height:1.55">Set a new password for your account.</p>
-
-      <form method="post" action="/auth/reset">
-        <input type="hidden" name="token" value="{{ token }}">
-
-        <div style="margin-top:20px;display:flex;flex-direction:column;gap:16px">
-          <div>
-            <label for="pw" style="font-size:13px;font-weight:700">New password</label>
-            <input id="pw" class="lf-in" type="password" name="password" style="margin-top:6px;width:100%;box-sizing:border-box;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--fg);font-size:15px;min-height:44px">
+    <div style="display:flex;justify-content:center;padding:30px 0;">
+      <div class="lf-cw">
+        <div class="lf-cube">
+          <div class="lf-f lf-f1">
+            <svg width="56" height="56" viewBox="0 0 40 40" aria-hidden="true"><path d="M8 10h24v6H8z" fill="var(--accfg)"></path><path d="M11 18h18l-5 8v3h-8v-3z" fill="var(--accfg)"></path><rect x="12" y="31" width="16" height="3" rx="1.5" fill="var(--accfg)"></rect></svg>
           </div>
-
-          <button class="lf-btn" style="padding:14px;border:0;border-radius:12px;background:var(--acc);color:var(--accfg);font-weight:700;font-size:15px;min-height:44px">Reset password</button>
+          <div class="lf-f lf-f2 mono" style="font-weight:700;letter-spacing:0.05em;">SEARCH</div>
+          <div class="lf-f lf-f3">
+            <svg width="56" height="56" viewBox="0 0 40 40" aria-hidden="true"><path d="M8 10h24v6H8z" fill="var(--accfg)"></path><path d="M11 18h18l-5 8v3h-8v-3z" fill="var(--accfg)"></path><rect x="12" y="31" width="16" height="3" rx="1.5" fill="var(--accfg)"></rect></svg>
+          </div>
+          <div class="lf-f lf-f4 mono" style="font-weight:700;letter-spacing:0.05em;">SCORE</div>
+          <div class="lf-f lf-f5 mono" style="font-weight:700;letter-spacing:0.05em;">ENRICH</div>
+          <div class="lf-f lf-f6 mono" style="font-weight:700;letter-spacing:0.05em;">EXPORT</div>
         </div>
-      </form>
-
-      <div style="margin-top:20px;font-size:14px;color:var(--mut);text-align:center">
-        <button onclick="location.href='/auth/login'" class="lf-link" style="border:0;background:transparent;color:var(--mut);font-weight:700;font-size:14px;min-height:44px;padding:0 4px">Back to sign in</button>
       </div>
     </div>
 
-    <div class="mono" style="font-size:12px;color:var(--mut);max-width:420px;text-align:center">Prototype. Sign in as User opens the app, as Admin opens the admin panel.</div>
+    <div>
+      <h2 style="font-size:clamp(28px, 3.2vw, 36px);line-height:1.15;margin:0;font-weight:700;max-width:440px;color:var(--accfg);">
+        Your lead pipeline, one sentence at a time.
+      </h2>
+      <p style="margin:14px 0 0;font-size:15px;line-height:1.6;max-width:420px;opacity:.92;color:var(--accfg);">
+        Choose a strong, unique password to protect your LeadForge account.
+      </p>
+    </div>
+  </div>
+
+  <!-- RIGHT FORM PANEL -->
+  <div style="flex:1 1 480px;min-width:0;padding:48px 24px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;background:var(--bg);">
+    <div style="width:100%;max-width:420px;display:flex;justify-content:flex-end;">
+      <button class="lf-btn lf-ghost" onclick="lfToggleTheme()" aria-label="Toggle light and dark theme" style="width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--surf);color:var(--fg);display:flex;align-items:center;justify-content:center;">
+        <svg class="lf-theme-icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="display:none;"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+        <svg class="lf-theme-icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg>
+      </button>
+    </div>
+
+    <!-- Reset Card -->
+    <div class="lf-form lf-card" style="width:100%;max-width:420px;padding:36px;border:1px solid var(--line);border-radius:24px;background:var(--surf);box-shadow:var(--shadow);box-sizing:border-box;">
+      <h1 style="font-size:28px;margin:0;font-weight:700;color:var(--fg);">Set new password</h1>
+      <p style="margin:8px 0 0;font-size:14px;color:var(--mut);line-height:1.55;">
+        Create a new password for your account.
+      </p>
+
+      <form method="post" action="/auth/reset" style="margin-top:24px;display:flex;flex-direction:column;gap:16px;">
+        <input type="hidden" name="token" value="{{ token or '' }}">
+
+        <div>
+          <label for="rs-pw" style="font-size:13px;font-weight:700;color:var(--fg);">New password</label>
+          <input id="rs-pw" class="lf-in" type="password" name="password" required minlength="8"
+            style="margin-top:6px;width:100%;box-sizing:border-box;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--fg);font-size:15px;min-height:44px;">
+        </div>
+
+        <button type="submit" class="lf-btn" style="margin-top:8px;padding:14px;border:0;border-radius:12px;background:var(--acc);color:var(--accfg);font-weight:700;font-size:15px;min-height:44px;width:100%;">
+          Reset password
+        </button>
+      </form>
+
+      <div style="margin-top:24px;font-size:14px;color:var(--mut);text-align:center;">
+        Return to
+        <a href="/auth/login" class="lf-link" style="color:var(--acc);font-weight:700;margin-left:4px;">Sign in</a>
+      </div>
+    </div>
   </div>
 
 </div>

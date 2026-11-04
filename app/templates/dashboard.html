@@ -1,79 +1,114 @@
 {% extends "layouts/app.html" %}
+{% from "components/macros.html" import stat_card, bar_chart_3d, line_chart, badge, button, empty_state %}
+
 {% set active_page = 'dashboard' %}
 {% block title %}Dashboard — LeadForge{% endblock %}
 
 {% block content %}
-<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;flex-wrap:wrap;gap:16px;">
-  <div>
-    <h2 class="disp" style="font-size:30px;margin:0 0 4px;font-family:Sora;">Dashboard</h2>
-    <p style="color:var(--mut);font-size:13px;margin:0;">{{ org.name if org else 'Organization' }}</p>
+<div class="lf-view" style="display:flex;flex-direction:column;gap:24px;">
+
+  <!-- STAT CARDS ROW -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;">
+    {{ stat_card("Total leads delivered", total_leads, note="Across all completed searches", points="0,26 15,22 30,24 45,18 60,12 75,14 90,6", stroke="var(--acc)") }}
+    {{ stat_card("Credits remaining", credits, note=(plan.name if plan else 'Starter') ~ " monthly quota", points="0,10 15,12 30,16 45,14 60,18 75,22 90,24", stroke="var(--acc2)") }}
+    {{ stat_card("Active searches", active_jobs_count, note="Running or queued in background", points="0,20 15,16 30,12 45,14 60,8 75,10 90,4", stroke="var(--ok)") }}
+    {{ stat_card("Average fit score", avg_score ~ "/100", note="AI scored relevance rating", points="0,22 15,18 30,14 45,16 60,10 75,8 90,4", stroke="var(--warn)") }}
   </div>
-  <div class="lf-card" style="border:1px solid var(--line);border-radius:12px;padding:16px 20px;min-width:200px;text-align:right;">
-    <div style="font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.05em;">Credits remaining</div>
-    <div style="font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:700;color:var(--fg);">{{ credits }}</div>
+
+  <!-- CHARTS ROW -->
+  <div style="display:flex;flex-wrap:wrap;gap:20px;align-items:stretch;">
+    <!-- 3D Bar Chart: Weekly Leads -->
+    <div class="lf-card" style="flex:1 1 420px;min-width:0;padding:24px;border:1px solid var(--line);border-radius:20px;background:var(--surf);box-shadow:var(--shadow);box-sizing:border-box;display:flex;flex-direction:column;justify-content:space-between;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <h3 style="margin:0;font-size:17px;font-weight:700;color:var(--fg);">Leads delivered per week</h3>
+          <div style="font-size:12px;color:var(--mut);margin-top:2px;">Recent 6 week delivery breakdown</div>
+        </div>
+        <span class="mono" style="font-size:12px;color:var(--acc);font-weight:600;">3D Real Aggregate</span>
+      </div>
+
+      <div style="margin-top:20px;">
+        {{ bar_chart_3d(weekly_bars, height=180) }}
+      </div>
+    </div>
+
+    <!-- Line Chart: Credits Used -->
+    <div style="flex:1 1 420px;min-width:0;">
+      {% if line_data %}
+        {{ line_chart(title="Credits used", subtitle="Deduction history", grid=line_data.grid, points=line_data.points, area_d=line_data.area_d, line_d=line_data.line_d, color="var(--acc)") }}
+      {% else %}
+        <div class="lf-card" style="padding:24px;border:1px solid var(--line);border-radius:20px;background:var(--surf);box-shadow:var(--shadow);box-sizing:border-box;">
+          <h3 style="margin:0 0 16px;font-size:17px;font-weight:700;color:var(--fg);">Credits used</h3>
+          {{ empty_state(title="No credit usage yet", description="Start your first lead search to view deduction metrics and activity trends here.") }}
+        </div>
+      {% endif %}
+    </div>
   </div>
-</div>
 
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:24px;">
-  {{ stat_card("Plan", plan.name if plan else 'Starter', sub.status if sub else 'none', None) }}
-  {{ stat_card("Seats", plan.seats if plan else 1, None, None) }}
-  {{ stat_card("Monthly credits", plan.monthly_credits if plan else 50, None, None) }}
-  {{ stat_card("Recent jobs", jobs|length, None, None) }}
-</div>
+  <!-- RECENT JOBS TABLE SECTION -->
+  <div class="lf-card" style="border:1px solid var(--line);border-radius:20px;background:var(--surf);box-shadow:var(--shadow);box-sizing:border-box;overflow:hidden;">
+    <div style="padding:20px 24px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);flex-wrap:wrap;gap:12px;">
+      <div>
+        <h3 style="margin:0;font-size:18px;font-weight:700;color:var(--fg);">Recent jobs</h3>
+        <div style="font-size:13px;color:var(--mut);margin-top:2px;">Status and progress of latest sourcing runs</div>
+      </div>
+      <a href="/searches" class="lf-btn lf-ghost" style="padding:8px 14px;border:1px solid var(--line);border-radius:10px;background:var(--surf2);color:var(--fg);font-size:13px;font-weight:700;text-decoration:none;">
+        View all searches
+      </a>
+    </div>
 
-<h3 style="font-size:16px;margin:0 0 12px;font-family:Sora;">Recent jobs</h3>
-<div class="lf-card" style="border:1px solid var(--line);border-radius:12px;overflow:hidden;">
-<table style="width:100%;border-collapse:collapse;">
-  <thead>
-    <tr>
-      <th style="text-align:left;padding:12px 16px;border-bottom:1px solid var(--line);font-size:12px;font-weight:600;color:var(--mut);">Job</th>
-      <th style="text-align:left;padding:12px 16px;border-bottom:1px solid var(--line);font-size:12px;font-weight:600;color:var(--mut);">Type</th>
-      <th style="text-align:left;padding:12px 16px;border-bottom:1px solid var(--line);font-size:12px;font-weight:600;color:var(--mut);">Status</th>
-      <th style="text-align:left;padding:12px 16px;border-bottom:1px solid var(--line);font-size:12px;font-weight:600;color:var(--mut);">Created</th>
-    </tr>
-  </thead>
-  <tbody>
-  {% for j in jobs %}
-    <tr style="border-bottom:1px solid var(--line);">
-      <td style="padding:12px 16px;font-size:13px;"><a href="/jobs/{{ j.id }}" class="lf-link" style="color:var(--acc);font-weight:600;">#{{ j.id }}</a></td>
-      <td style="padding:12px 16px;font-size:13px;color:var(--fg);">{{ j.type }}</td>
-      <td style="padding:12px 16px;font-size:12px;">
-        <span class="badge {{ 'ok' if j.status=='done' else 'warn' if j.status=='running' else '' }}">
-          {{ j.status }}
-        </span>
-      </td>
-      <td style="padding:12px 16px;font-size:12px;color:var(--mut);font-family:'JetBrains Mono',monospace;">{{ j.created_at.strftime('%b %d, %H:%M') if j.created_at else '-' }}</td>
-    </tr>
-  {% else %}
-    <tr><td colspan="4" style="padding:24px 16px;color:var(--mut);text-align:center;">No jobs yet.</td></tr>
-  {% endfor %}
-  </tbody>
-</table>
-</div>
+    {% if jobs %}
+    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+      <table style="width:100%;border-collapse:collapse;text-align:left;font-size:14px;">
+        <thead>
+          <tr style="background:var(--surf2);border-bottom:1px solid var(--line);">
+            <th style="padding:12px 18px;font-size:12px;font-weight:700;color:var(--mut);text-transform:uppercase;">Job</th>
+            <th style="padding:12px 18px;font-size:12px;font-weight:700;color:var(--mut);text-transform:uppercase;">Search query</th>
+            <th style="padding:12px 18px;font-size:12px;font-weight:700;color:var(--mut);text-transform:uppercase;">Target</th>
+            <th style="padding:12px 18px;font-size:12px;font-weight:700;color:var(--mut);text-transform:uppercase;">Status</th>
+            <th style="padding:12px 18px;font-size:12px;font-weight:700;color:var(--mut);text-transform:uppercase;">Date</th>
+            <th style="padding:12px 18px;font-size:12px;font-weight:700;color:var(--mut);text-transform:uppercase;text-align:right;">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for j in jobs %}
+          <tr class="lf-row" style="border-bottom:1px solid var(--line);">
+            <td class="mono" style="padding:14px 18px;font-weight:700;color:var(--fg);">#{{ j.id }}</td>
+            <td style="padding:14px 18px;color:var(--fg);font-weight:600;max-width:320px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+              {{ j.search.query if j.search else 'Natural language search' }}
+            </td>
+            <td class="mono" style="padding:14px 18px;color:var(--mut);">
+              {{ (j.result_summary or {}).collected or 0 }} / {{ (j.result_summary or {}).target_count or 10 }}
+            </td>
+            <td style="padding:14px 18px;">
+              {% set st = j.status|string %}
+              {% if 'done' in st %}
+                {{ badge("Done", kind="ok") }}
+              {% elif 'running' in st %}
+                <span class="lf-badge"><span class="dot lf-dot" style="background:var(--acc2);"></span><span>Running</span></span>
+              {% elif 'failed' in st %}
+                {{ badge("Failed", kind="bad") }}
+              {% else %}
+                {{ badge("Queued", kind="warn") }}
+              {% endif %}
+            </td>
+            <td class="mono" style="padding:14px 18px;font-size:13px;color:var(--mut);">
+              {{ j.created_at.strftime('%d %b, %H:%M') if j.created_at else 'Recent' }}
+            </td>
+            <td style="padding:14px 18px;text-align:right;">
+              <a href="/jobs/{{ j.id }}" class="lf-link" style="color:var(--acc);font-weight:700;font-size:13px;">View details &rarr;</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div style="padding:48px 24px;">
+      {{ empty_state(title="No searches launched yet", description="Type a query using the New search button above to generate leads.", action_text="Start first search", action_href="javascript:lfOpenSearchModal()") }}
+    </div>
+    {% endif %}
+  </div>
 
-<h3 style="font-size:16px;margin:24px 0 12px;font-family:Sora;">Recent searches</h3>
-<div class="lf-card" style="border:1px solid var(--line);border-radius:12px;overflow:hidden;">
-<table style="width:100%;border-collapse:collapse;">
-  <thead>
-    <tr>
-      <th style="text-align:left;padding:12px 16px;border-bottom:1px solid var(--line);font-size:12px;font-weight:600;color:var(--mut);">Query</th>
-      <th style="text-align:left;padding:12px 16px;border-bottom:1px solid var(--line);font-size:12px;font-weight:600;color:var(--mut);">Created</th>
-    </tr>
-  </thead>
-  <tbody>
-  {% for s in searches %}
-    <tr style="border-bottom:1px solid var(--line);">
-      <td style="padding:12px 16px;font-size:13px;color:var(--fg);">{{ s.query }}</td>
-      <td style="padding:12px 16px;font-size:12px;color:var(--mut);font-family:'JetBrains Mono',monospace;">{{ s.created_at.strftime('%b %d, %H:%M') if s.created_at else '-' }}</td>
-    </tr>
-  {% else %}
-    <tr><td colspan="2" style="padding:24px 16px;color:var(--mut);text-align:center;">No searches yet.</td></tr>
-  {% endfor %}
-  </tbody>
-</table>
-</div>
-
-<div style="margin-top:24px;">
-  <a href="/searches" class="lf-btn" style="padding:12px 24px;border-radius:10px;background:var(--acc);color:var(--accfg);border:none;">Start a new search</a>
 </div>
 {% endblock %}

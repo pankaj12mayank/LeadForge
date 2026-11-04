@@ -1,9 +1,11 @@
-﻿from __future__ import annotations
+from __future__ import annotations
+
+import hashlib
 
 from fastapi import APIRouter, Depends, Header, HTTPException
 from sqlalchemy.orm import Session
 
-from app.db import SessionLocal, get_db
+from app.db import get_db
 from app.models import ApiKey, Lead
 
 router = APIRouter()
@@ -12,7 +14,6 @@ router = APIRouter()
 def _org_from_api_key(x_api_key: str | None, db: Session):
     if not x_api_key:
         raise HTTPException(status_code=401, detail="API key required")
-    import hashlib
 
     key_hash = hashlib.sha256(x_api_key.encode()).hexdigest()
     ak = db.query(ApiKey).filter(ApiKey.key_hash == key_hash).first()

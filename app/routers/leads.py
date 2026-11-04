@@ -1,14 +1,15 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
 from sqlalchemy.orm import Session
 
-from app.auth.deps import current_user, current_org_id, require_user
+from app.auth.deps import current_org_id, require_user
 from app.config import settings
-from app.db import SessionLocal, get_db
-from app.models import Lead
+from app.db import get_db
+from app.models import Lead, Plan, Subscription
 from app.services.exporter import export_csv, export_xlsx
+from app.services.quota import get_credits
 
 router = APIRouter()
 
@@ -32,6 +33,7 @@ def leads_list(
     tier: str | None = None,
     status: str | None = None,
     sort: str = "score",
+    page: int = 1,
     db: Session = Depends(get_db),
 ):
     query = db.query(Lead).filter(Lead.org_id == org_id)
@@ -50,17 +52,42 @@ def leads_list(
         query = query.order_by(Lead.score.desc().nullslast(), Lead.created_at.desc())
     else:
         query = query.order_by(Lead.created_at.desc())
-    leads = query.limit(200).all()
+
+    PAGE_SIZE = 8
+    total_leads = query.count()
+    total_pages = max(1, (total_leads + PAGE_SIZE - 1) // PAGE_SIZE) if total_leads > 0 else 1
+    page = max(1, min(page, total_pages))
+    leads = query.offset((page - 1) * PAGE_SIZE).limit(PAGE_SIZE).all()
+
+    credits = get_credits(org_id, db)
+    sub = (
+        db.query(Subscription)
+        .filter(Subscription.org_id == org_id)
+        .order_by(Subscription.created_at.desc())
+        .first()
+    )
+    plan = db.get(Plan, sub.plan_id) if sub else None
+
     return _render(
         request,
         "leads.html",
+        active_page="leads",
+        page_title="Leads",
+        page_sub=f"{total_leads} leads sourced across your workspace",
         leads=leads,
+        total_leads=total_leads,
+        page=page,
+        total_pages=total_pages,
+        page_size=PAGE_SIZE,
         q=q or "",
         tier=tier or "",
         status=status or "",
         sort=sort,
         settings=settings,
         user=user,
+        credits=credits,
+        sub=sub,
+        plan=plan,
     )
 
 
@@ -72,11 +99,14 @@ def bulk_status(
     status: str = Form(...),
     db: Session = Depends(get_db),
 ):
-    db.query(Lead).filter(Lead.org_id == org_id, Lead.id.in_(ids)).update(
-        {Lead.status: status}, synchronize_session=False
-    )
-    db.commit()
-    return RedirectResponse(url="/leads", status_code=303)
+    if ids:
+        db.query(Lead).filter(Lead.org_id == org_id, Lead.id.in_(ids)).update(
+            {Lead.status: status}, synchronize_session=False
+        )
+        db.commit()
+    trigger_json = '{"toast":{"kind":"ok","title":"Status updated","msg":"Marked as ' + status + '"}}'
+    target_url = request.headers.get("referer") or "/leads"
+    return RedirectResponse(url=target_url, status_code=303, headers={"HX-Trigger": trigger_json})
 
 
 @router.get("/leads/export")

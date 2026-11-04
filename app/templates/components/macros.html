@@ -1,131 +1,418 @@
-{% macro button(text, type="submit", klass="", href=None, disabled=False, icon=None) %}
-{% if href %}
-<a href="{{ href }}" class="lf-btn{{ ' ' + klass if klass else '' }}" {{ 'disabled' if disabled else '' }} role="button" aria-disabled="{{ 'true' if disabled else 'false' }}">{% if icon %}<span aria-hidden="true">{{ icon }}</span> {% endif %}{{ text }}</a>
+{# ==========================================================================
+   LeadForge Component Macros
+   Matches Brand.dc.html and design kit
+   ========================================================================== #}
+
+{# ── 1. BUTTON ───────────────────────────────────────────────────────────── #}
+{% macro button(text, type="button", variant="primary", href=None, disabled=False, icon=None, klass="", attrs="", id=None) %}
+{% set v_style = "" %}
+{% if variant == "primary" %}
+  {% set v_style = "background:var(--acc);color:var(--accfg);border:0;" %}
+{% elif variant == "secondary" %}
+  {% set v_style = "background:var(--surf2);color:var(--fg);border:1px solid var(--line);" %}
+{% elif variant == "ghost" %}
+  {% set v_style = "background:transparent;color:var(--fg);border:1px solid transparent;" %}
+{% elif variant == "ghost-border" %}
+  {% set v_style = "background:transparent;color:var(--fg);border:1px solid var(--line);" %}
+{% elif variant == "danger" or variant == "delete" %}
+  {% set v_style = "background:var(--bad);color:var(--badfg);border:0;" %}
+{% elif variant == "success" %}
+  {% set v_style = "background:var(--ok);color:var(--okfg);border:0;" %}
+{% endif %}
+
+{% if href and not disabled %}
+<a href="{{ href }}" class="lf-btn {{ 'lf-ghost' if 'ghost' in variant else '' }} {{ klass }}" {% if id %}id="{{ id }}"{% endif %} style="padding:11px 18px;border-radius:12px;font-weight:700;font-size:14px;min-height:44px;{{ v_style }}" role="button" {{ attrs|safe }}>
+  {% if icon %}{{ icon|safe }}{% endif %}
+  <span>{{ text }}</span>
+</a>
 {% else %}
-<button type="{{ type }}" class="lf-btn{{ ' ' + klass if klass else '' }}" {{ 'disabled' if disabled else '' }}>
-{% if icon %}<span aria-hidden="true">{{ icon }}</span> {% endif %}{{ text }}</button>
+<button type="{{ type }}" class="lf-btn {{ 'lf-ghost' if 'ghost' in variant else '' }} {{ klass }}" {% if id %}id="{{ id }}"{% endif %} {% if disabled %}disabled aria-disabled="true"{% endif %} style="padding:11px 18px;border-radius:12px;font-weight:700;font-size:14px;min-height:44px;{{ v_style }}" {{ attrs|safe }}>
+  {% if icon %}{{ icon|safe }}{% endif %}
+  <span>{{ text }}</span>
+</button>
 {% endif %}
 {% endmacro %}
 
-{% macro input(name, type="text", value="", placeholder="", required=False, klass="", error=None) %}
-<div style="margin-bottom:14px;">
-{% if placeholder %}<label class="sr-only" for="{{ name }}">{{ placeholder }}</label>{% endif %}
-<input type="{{ type }}" name="{{ name }}" id="{{ name }}" value="{{ value }}" placeholder="{{ placeholder }}"
-  class="lf-in {{ 'lf-invalid' if error else '' }} {{ klass }}"
-  style="width:100%;padding:10px 12px;border:1px solid {{ 'var(--bad)' if error else 'var(--line)' }};border-radius:10px;background:var(--surf);color:var(--fg);font-size:14px;"
-  {% if required %}required{% endif %}>
-{% if error %}<p style="color:var(--bad);font-size:12px;margin-top:4px;">{{ error }}</p>{% endif %}
+
+{# ── 2. INPUT ────────────────────────────────────────────────────────────── #}
+{% macro input(name, label=None, type="text", value="", placeholder="", required=False, error=None, id=None, hint=None, klass="", attrs="") %}
+{% set inp_id = id or name %}
+<div style="display:flex;flex-direction:column;gap:6px;width:100%;">
+  {% if label %}
+  <label for="{{ inp_id }}" style="font-size:13px;font-weight:700;color:var(--fg);">
+    {{ label }}{% if required %} <span style="color:var(--acc)">*</span>{% endif %}
+  </label>
+  {% endif %}
+  <input type="{{ type }}" name="{{ name }}" id="{{ inp_id }}" value="{{ value or '' }}" placeholder="{{ placeholder }}"
+    class="lf-in {{ klass }}"
+    {% if required %}required{% endif %}
+    style="width:100%;box-sizing:border-box;padding:12px 14px;border:1px solid {{ 'var(--bad)' if error else 'var(--line)' }};border-radius:12px;background:var(--bg);color:var(--fg);font-size:15px;min-height:44px;"
+    {{ attrs|safe }}>
+  {% if hint and not error %}
+  <span style="font-size:12px;color:var(--mut);">{{ hint }}</span>
+  {% endif %}
+  {% if error %}
+  <span style="color:var(--bad);font-size:12px;font-weight:600;">{{ error }}</span>
+  {% endif %}
 </div>
 {% endmacro %}
 
-{% macro select(name, options, value="", placeholder="Select…", klass="") %}
-<div style="margin-bottom:14px;">
-<label class="sr-only" for="{{ name }}">{{ placeholder }}</label>
-<select name="{{ name }}" id="{{ name }}"
-  class="lf-in {{ klass }}"
-  style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surf);color:var(--fg);font-size:14px;">
-  <option value="">{{ placeholder }}</option>
-{% for opt_val, opt_label in options %}
-  <option value="{{ opt_val }}" {{ 'selected' if opt_val == value else '' }}>{{ opt_label }}</option>
-{% endfor %}
-</select>
+
+{# ── 3. SELECT / DROPDOWN ────────────────────────────────────────────────── #}
+{% macro select(name, options, label=None, value="", placeholder="Select…", id=None, klass="", attrs="") %}
+{% set sel_id = id or name %}
+<div style="display:flex;flex-direction:column;gap:6px;width:100%;">
+  {% if label %}
+  <label for="{{ sel_id }}" style="font-size:13px;font-weight:700;color:var(--fg);">{{ label }}</label>
+  {% endif %}
+  <select name="{{ name }}" id="{{ sel_id }}" class="lf-in {{ klass }}"
+    style="width:100%;box-sizing:border-box;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--fg);font-size:15px;min-height:44px;"
+    {{ attrs|safe }}>
+    {% if placeholder %}
+    <option value="">{{ placeholder }}</option>
+    {% endif %}
+    {% for opt in options %}
+      {% if opt is mapping %}
+        <option value="{{ opt.value }}" {% if opt.value|string == value|string %}selected{% endif %}>{{ opt.label }}</option>
+      {% elif opt is sequence and opt is not string %}
+        <option value="{{ opt[0] }}" {% if opt[0]|string == value|string %}selected{% endif %}>{{ opt[1] }}</option>
+      {% else %}
+        <option value="{{ opt }}" {% if opt|string == value|string %}selected{% endif %}>{{ opt }}</option>
+      {% endif %}
+    {% endfor %}
+  </select>
 </div>
 {% endmacro %}
 
-{% macro badge(kind, text) %}
-<span class="badge {{ kind }}">{{ text }}</span>
-{% endmacro %}
 
-{% macro stat_card(label, value, delta=None, delta_kind=None) %}
-<div class="stat-card">
-  <div class="label">{{ label }}</div>
-  <div class="value">{{ value }}</div>
-{% if delta is not none %}
-  <div class="delta {{ delta_kind or '' }}">{{ delta }}</div>
+{# ── 4. BADGE ────────────────────────────────────────────────────────────── #}
+{% macro badge(text, kind="default", dot_color=None) %}
+{% set c = dot_color %}
+{% if not c %}
+  {% if kind == "ok" or kind == "success" or kind == "done" or kind == "hot" %}
+    {% set c = "var(--ok)" %}
+  {% elif kind == "warn" or kind == "warning" or kind == "warm" or kind == "queued" %}
+    {% set c = "var(--warn)" %}
+  {% elif kind == "bad" or kind == "danger" or kind == "error" or kind == "failed" %}
+    {% set c = "var(--bad)" %}
+  {% elif kind == "running" or kind == "cold" %}
+    {% set c = "var(--acc2)" %}
+  {% else %}
+    {% set c = "var(--acc)" %}
+  {% endif %}
 {% endif %}
-</div>
+<span class="lf-badge">
+  <span class="dot" style="background:{{ c }};"></span>
+  <span>{{ text }}</span>
+</span>
 {% endmacro %}
 
-{% macro table(headers, rows, row_attrs=None) %}
-<div style="border:1px solid var(--line);border-radius:12px;overflow:auto;">
-<table style="width:100%;border-collapse:collapse;background:var(--surf);">
-  <thead>
-    <tr>
-{% for h in headers %}
-      <th style="text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);font-size:12px;font-weight:600;color:var(--mut);background:var(--surf2);">{{ h }}</th>
-{% endfor %}
-    </tr>
-  </thead>
-  <tbody>
-{% for row in rows %}
-    <tr{{ row_attrs(row) if row_attrs else '' }}>
-{% for cell in row %}
-      <td style="padding:10px 12px;border-bottom:1px solid var(--line);font-size:13px;color:var(--fg);border-top:1px solid var(--line);">{{ cell }}</td>
-{% endfor %}
-    </tr>
-{% endfor %}
-  </tbody>
-</table>
-</div>
-{% endmacro %}
 
-{% macro pagination(page, total_pages, url_template) %}
-<nav style="display:flex;justify-content:center;gap:6px;margin-top:16px;" aria-label="Pagination">
-{% if page > 1 %}
-<a href="{{ url_template|replace('{page}', (page-1)|string) }}" class="lf-btn lf-ghost" style="padding:6px 12px;border-radius:8px;border:1px solid var(--line);">&#9664; Prev</a>
-{% endif %}
-{% for p in range(1, total_pages + 1) %}
-{% if p == page %}
-<span class="lf-btn lf-ghost" style="padding:6px 12px;border-radius:8px;background:var(--acc);color:var(--accfg);border-color:var(--acc);">{{ p }}</span>
-{% else %}
-<a href="{{ url_template|replace('{page}', p|string) }}" class="lf-btn lf-ghost" style="padding:6px 12px;border-radius:8px;border:1px solid var(--line);">{{ p }}</a>
-{% endif %}
-{% endfor %}
-{% if page < total_pages %}
-<a href="{{ url_template|replace('{page}', (page+1)|string) }}" class="lf-btn lf-ghost" style="padding:6px 12px;border-radius:8px;border:1px solid var(--line);">Next &#9654;</a>
-{% endif %}
-</nav>
-{% endmacro %}
-
-{% macro progress(steps, current_step) %}
-<div style="margin-top:12px;">
-{% for s in steps %}
-<div style="display:flex;align-items:center;gap:8;margin-bottom:6px;">
-  <div style="width:10px;height:10px;border-radius:50%;background:{{ 'var(--acc)' if loop.index <= current_step else 'var(--line)' }};"></div>
-  <span style="font-size:12px;color:{{ 'var(--fg)' if loop.index <= current_step else 'var(--mut)' }};font-weight:{{ '600' if loop.index == current_step else '400' }};">{{ s }}</span>
-</div>
-{% endfor %}
-</div>
-{% endmacro %}
-
-{% macro bar_chart(bars) %}
-<div style="display:flex;align-items:flex-end;gap:8px;padding:16px 0;min-height:200px;">
-{% for b in bars %}
-<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;">
-  <div class="lf-bar" style="--h:{{ b.height }}px;--c:{{ b.color or 'var(--acc)' }};--d:{{ b.delay or '0s' }};" data-tip="{{ b.label }}: {{ b.value }}"></div>
-  <span style="font-size:11px;color:var(--mut);writing-mode:vertical-rl;text-orientation:mixed;">{{ b.label }}</span>
-</div>
-{% endfor %}
-</div>
-{% endmacro %}
-
-{% macro line_chart(svg_content) %}
-<svg viewBox="0 0 400 200" class="lf-line" style="width:100%;height:200px;" aria-label="Line chart">
-{{ svg_content | safe }}
-</svg>
-{% endmacro %}
-
-{% macro donut_chart(value, label) %}
-<div class="lf-dwrap" aria-label="{{ label }}: {{ value }}">
-  <svg width="260" height="260" viewBox="0 0 260 260">
-    <circle cx="130" cy="130" r="110" fill="none" stroke="var(--line)" stroke-width="12"/>
-    <circle cx="130" cy="130" r="110" fill="none" stroke="var(--acc)" stroke-width="12"
-      stroke-dasharray="{{ value * 6.91 }}, 691"
-      style="transform:rotate(-90deg);transform-origin:130px 130px;transition:stroke-dasharray 0.8s ease;"/>
-  </svg>
-  <div class="lf-disc" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;">
-    <div style="font-family:'JetBrains Mono',monospace;font-size:32px;font-weight:700;color:var(--fg);">{{ value }}%</div>
-    <div style="font-size:12px;color:var(--mut);margin-top:4px;">{{ label }}</div>
+{# ── 5. STAT CARD ────────────────────────────────────────────────────────── #}
+{% macro stat_card(label, value, note=None, points=None, stroke="var(--acc)", klass="") %}
+<div class="lf-card {{ klass }}" style="padding:20px;border:1px solid var(--line);border-radius:18px;background:var(--surf);box-shadow:var(--shadow);box-sizing:border-box;">
+  <div style="font-size:13px;font-weight:700;color:var(--mut);">{{ label }}</div>
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:10px;">
+    <div class="disp" style="font-size:32px;font-weight:700;line-height:1;color:var(--fg);">{{ value }}</div>
+    {% if points %}
+    <svg width="92" height="32" viewBox="0 0 92 32" aria-hidden="true">
+      <polyline class="lf-line" fill="none" stroke="{{ stroke }}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" pathLength="1" points="{{ points }}"></polyline>
+    </svg>
+    {% endif %}
   </div>
+  {% if note %}
+  <div style="margin-top:10px;font-size:12px;color:var(--mut);">{{ note }}</div>
+  {% endif %}
+</div>
+{% endmacro %}
+
+
+{# ── 6. TABLE ────────────────────────────────────────────────────────────── #}
+{% macro table(headers, rows, empty_msg="No records found.") %}
+<div style="border:1px solid var(--line);border-radius:16px;background:var(--surf);overflow-x:auto;-webkit-overflow-scrolling:touch;">
+  <table style="width:100%;border-collapse:collapse;text-align:left;font-size:14px;">
+    <thead>
+      <tr style="border-bottom:1px solid var(--line);background:var(--surf2);">
+        {% for h in headers %}
+        <th style="padding:14px 18px;font-size:12px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:0.04em;">{{ h }}</th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% if rows %}
+        {% for row in rows %}
+        <tr class="lf-row" style="border-top:1px solid var(--line);">
+          {% for cell in row %}
+          <td style="padding:14px 18px;color:var(--fg);vertical-align:middle;">{{ cell|safe }}</td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      {% else %}
+        <tr>
+          <td colspan="{{ headers|length }}" style="padding:36px;text-align:center;color:var(--mut);">
+            {{ empty_msg }}
+          </td>
+        </tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+{% endmacro %}
+
+
+{# ── 7. PAGINATION ───────────────────────────────────────────────────────── #}
+{% macro pagination(page, total_pages, base_url="", hx_target=None, hx_push="true") %}
+{% if total_pages and total_pages > 1 %}
+<nav aria-label="Pagination" style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:20px;flex-wrap:wrap;">
+  {# Previous page button #}
+  {% if page > 1 %}
+    {% set prev_url = base_url ~ ('&' if '?' in base_url else '?') ~ 'page=' ~ (page - 1) %}
+    <a href="{{ prev_url }}"
+       {% if hx_target %}hx-get="{{ prev_url }}" hx-target="{{ hx_target }}" hx-push-url="{{ hx_push }}"{% endif %}
+       class="lf-btn lf-ghost" aria-label="Previous page"
+       style="width:44px;height:44px;border:1px solid var(--line);border-radius:12px;background:var(--surf2);color:var(--fg);display:flex;align-items:center;justify-content:center;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
+    </a>
+  {% else %}
+    <button disabled aria-disabled="true" class="lf-btn" aria-label="Previous page"
+       style="width:44px;height:44px;border:1px solid var(--line);border-radius:12px;background:var(--surf2);color:var(--mut);display:flex;align-items:center;justify-content:center;opacity:0.4;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
+    </button>
+  {% endif %}
+
+  {# Page numbers #}
+  {% for p in range(1, total_pages + 1) %}
+    {% if p == 1 or p == total_pages or (p >= page - 2 and p <= page + 2) %}
+      {% set p_url = base_url ~ ('&' if '?' in base_url else '?') ~ 'page=' ~ p %}
+      {% if p == page %}
+        <span aria-current="page" class="mono" style="width:44px;height:44px;border-radius:12px;background:var(--acc);color:var(--accfg);font-weight:700;display:flex;align-items:center;justify-content:center;font-size:14px;">{{ p }}</span>
+      {% else %}
+        <a href="{{ p_url }}"
+           {% if hx_target %}hx-get="{{ p_url }}" hx-target="{{ hx_target }}" hx-push-url="{{ hx_push }}"{% endif %}
+           class="lf-btn lf-ghost mono"
+           style="width:44px;height:44px;border:1px solid var(--line);border-radius:12px;background:var(--surf2);color:var(--fg);font-weight:700;display:flex;align-items:center;justify-content:center;font-size:14px;">{{ p }}</a>
+      {% endif %}
+    {% elif (p == page - 3 and p > 1) or (p == page + 3 and p < total_pages) %}
+      <span class="mono" style="padding:0 4px;color:var(--mut);font-weight:700;">…</span>
+    {% endif %}
+  {% endfor %}
+
+  {# Next page button #}
+  {% if page < total_pages %}
+    {% set next_url = base_url ~ ('&' if '?' in base_url else '?') ~ 'page=' ~ (page + 1) %}
+    <a href="{{ next_url }}"
+       {% if hx_target %}hx-get="{{ next_url }}" hx-target="{{ hx_target }}" hx-push-url="{{ hx_push }}"{% endif %}
+       class="lf-btn lf-ghost" aria-label="Next page"
+       style="width:44px;height:44px;border:1px solid var(--line);border-radius:12px;background:var(--surf2);color:var(--fg);display:flex;align-items:center;justify-content:center;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+    </a>
+  {% else %}
+    <button disabled aria-disabled="true" class="lf-btn" aria-label="Next page"
+       style="width:44px;height:44px;border:1px solid var(--line);border-radius:12px;background:var(--surf2);color:var(--mut);display:flex;align-items:center;justify-content:center;opacity:0.4;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+    </button>
+  {% endif %}
+</nav>
+{% endif %}
+{% endmacro %}
+
+
+{# ── 8. MODAL WRAPPER ─────────────────────────────────────────────────────── #}
+{% macro modal(id, title, body_content="", actions=None) %}
+<div id="{{ id }}" style="display:none;">
+  <div class="lf-modal" role="dialog" aria-modal="true" style="width:100%;max-width:440px;padding:28px;border-radius:22px;border:1px solid var(--line);background:var(--surf);box-shadow:var(--shadow-h);box-sizing:border-box;">
+    <h3 style="font-size:22px;margin:0;font-weight:700;color:var(--fg);">{{ title }}</h3>
+    <div style="margin-top:14px;color:var(--mut);font-size:14px;line-height:1.6;">
+      {{ body_content|safe }}
+    </div>
+    {% if actions %}
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:24px;">
+      {{ actions|safe }}
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endmacro %}
+
+
+{# ── 9. TOAST TRIGGER ─────────────────────────────────────────────────────── #}
+{% macro toast(kind, title, msg) %}
+<div class="lf-toast" role="status" style="border-left-color:{{ 'var(--ok)' if kind=='ok' else 'var(--bad)' if kind=='bad' else 'var(--warn)' if kind=='warn' else 'var(--acc2)' }};">
+  <div>
+    <div style="font-weight:700;font-size:14px;color:var(--fg);">{{ title }}</div>
+    <div style="font-size:13px;color:var(--mut);margin-top:2px;">{{ msg }}</div>
+  </div>
+</div>
+{% endmacro %}
+
+
+{# ── 10. PROGRESS ────────────────────────────────────────────────────────── #}
+{% macro progress(steps=None, current_step=1, percentage=None) %}
+{% if steps %}
+<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:16px 0;">
+  {% for s in steps %}
+    {% set is_done = loop.index < current_step %}
+    {% set is_active = loop.index == current_step %}
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;
+        background:{{ 'var(--ok)' if is_done else 'var(--acc)' if is_active else 'var(--surf2)' }};
+        color:{{ 'var(--okfg)' if is_done else 'var(--accfg)' if is_active else 'var(--mut)' }};
+        border:1px solid {{ 'var(--ok)' if is_done else 'var(--acc)' if is_active else 'var(--line)' }};">
+        {% if is_done %}&#10003;{% else %}{{ loop.index }}{% endif %}
+      </div>
+      <span style="font-size:13px;font-weight:{{ '700' if is_active else '500' }};color:{{ 'var(--fg)' if is_active or is_done else 'var(--mut)' }};">
+        {{ s }}
+      </span>
+      {% if not loop.last %}
+      <div style="width:20px;height:2px;background:{{ 'var(--ok)' if is_done else 'var(--line)' }};"></div>
+      {% endif %}
+    </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% if percentage is not none %}
+<div style="width:100%;height:8px;border-radius:6px;background:var(--surf2);overflow:hidden;margin-top:8px;">
+  <div class="lf-prog" style="width:{{ percentage }}%;height:100%;border-radius:6px;transition:width 0.6s ease;"></div>
+</div>
+{% endif %}
+{% endmacro %}
+
+
+{# ── 11. 3D BAR CHART ────────────────────────────────────────────────────── #}
+{% macro bar_chart_3d(bars, height=200) %}
+{% if bars %}
+<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:12px;">
+  <div class="lf-stage" style="display:flex;align-items:flex-end;gap:36px;padding:48px 32px 0 24px;border-bottom:2px solid var(--line);min-height:{{ height }}px;width:max-content;margin:0 auto;">
+    {% for b in bars %}
+    <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+      <div class="lf-bar" data-tip="{{ b.tip or b.value }}" style="--h:{{ b.h or b.height or 80 }}px;--d:{{ b.delay or (loop.index0 * 0.1) }}s;--c:{{ b.color or b.c or 'var(--acc)' }};">
+        <span class="lf-bt"></span>
+        <span class="lf-bs"></span>
+      </div>
+      <span class="mono" style="font-size:12px;color:var(--mut);font-weight:600;">{{ b.label }}</span>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% else %}
+<div style="padding:48px;text-align:center;color:var(--mut);font-size:14px;">
+  No data recorded for this period.
+</div>
+{% endif %}
+{% endmacro %}
+
+
+{# ── 12. LINE CHART ──────────────────────────────────────────────────────── #}
+{% macro line_chart(title=None, subtitle="Real aggregate", grid=None, points=None, area_d="", line_d="", color="var(--acc)") %}
+<div style="flex:1 1 380px;min-width:0;padding:24px;border:1px solid var(--line);border-radius:20px;background:var(--surf);box-shadow:var(--shadow);box-sizing:border-box;">
+  {% if title %}
+  <div style="display:flex;justify-content:space-between;align-items:center;">
+    <h3 style="margin:0;font-size:17px;font-weight:700;color:var(--fg);">{{ title }}</h3>
+    {% if subtitle %}
+    <span class="mono" style="font-size:12px;color:var(--mut);">{{ subtitle }}</span>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {% if line_d %}
+  <svg viewBox="0 0 560 240" width="100%" height="220" role="img" aria-label="{{ title or 'Chart' }}" style="margin-top:16px;display:block;">
+    {% if grid %}
+      {% for g in grid %}
+      <line x1="40" y1="{{ g.y }}" x2="540" y2="{{ g.y }}" stroke="var(--line)" stroke-width="1"></line>
+      <text x="30" y="{{ g.ty or (g.y + 4) }}" fill="var(--mut)" font-family="JetBrains Mono" font-size="11" text-anchor="end">{{ g.l }}</text>
+      {% endfor %}
+    {% else %}
+      <line x1="40" y1="50" x2="540" y2="50" stroke="var(--line)" stroke-width="1"></line>
+      <line x1="40" y1="110" x2="540" y2="110" stroke="var(--line)" stroke-width="1"></line>
+      <line x1="40" y1="170" x2="540" y2="170" stroke="var(--line)" stroke-width="1"></line>
+    {% endif %}
+
+    {% if area_d %}
+    <path class="lf-area" d="{{ area_d }}" fill="{{ color }}" fill-opacity="0.14"></path>
+    {% endif %}
+
+    <path class="lf-line" d="{{ line_d }}" fill="none" stroke="{{ color }}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" pathLength="1"></path>
+
+    {% if points %}
+      {% for p in points %}
+      <circle class="lf-pt" cx="{{ p.x }}" cy="{{ p.y }}" r="5" fill="var(--surf)" stroke="{{ color }}" stroke-width="3">
+        <title>{{ p.t or p.label }}</title>
+      </circle>
+      {% if p.w or p.label %}
+      <text x="{{ p.x }}" y="232" fill="var(--mut)" font-family="JetBrains Mono" font-size="11" text-anchor="middle">{{ p.w or p.label }}</text>
+      {% endif %}
+      {% endfor %}
+    {% endif %}
+  </svg>
+  {% else %}
+  <div style="padding:48px 24px;text-align:center;color:var(--mut);font-size:14px;">
+    No usage activity recorded yet.
+  </div>
+  {% endif %}
+</div>
+{% endmacro %}
+
+
+{# ── 13. DONUT 3D ────────────────────────────────────────────────────────── #}
+{% macro donut_3d(layers=None, legend=None) %}
+{% if legend %}
+<div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:28px;padding:16px 0;">
+  <div class="lf-dwrap">
+    <div class="lf-disc">
+      <div class="lf-spinz">
+        {% set layer_count = layers|length if layers else 8 %}
+        {% for l_idx in range(layer_count) %}
+          {% set l_z = (l_idx * 4) - 14 %}
+          {% set l_br = 0.75 + (l_idx * 0.05) %}
+          <svg class="lf-layer" viewBox="0 0 200 200" aria-hidden="true" style="transform:translateZ({{ l_z }}px);filter:brightness({{ l_br }});">
+            <g transform="rotate(-90 100 100)">
+              {% for seg in legend %}
+              <circle cx="100" cy="100" r="70" fill="none" stroke="{{ seg.color }}" stroke-width="34" pathLength="100"
+                stroke-dasharray="{{ seg.pct or 25 }} {{ 100 - (seg.pct or 25) }}"
+                stroke-dashoffset="{{ -(seg.offset or 0) }}"></circle>
+              {% endfor %}
+            </g>
+          </svg>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:12px;">
+    {% for g in legend %}
+    <div style="display:flex;align-items:center;gap:10px;font-size:14px;font-weight:700;color:var(--fg);">
+      <span style="width:12px;height:12px;border-radius:3px;background:{{ g.color }};"></span>
+      <span>{{ g.label or g.t }}</span>
+      <span class="mono" style="color:var(--mut);font-weight:500;">{{ g.value or g.n }}</span>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% else %}
+<div style="padding:48px 24px;text-align:center;color:var(--mut);font-size:14px;">
+  No status data available.
+</div>
+{% endif %}
+{% endmacro %}
+
+
+{# ── 14. EMPTY STATE ─────────────────────────────────────────────────────── #}
+{% macro empty_state(title="No data found", description="There are no items to display here yet.", action_text=None, action_href=None, icon=None) %}
+<div class="empty-state" style="padding:56px 24px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;">
+  <div style="width:56px;height:56px;border-radius:16px;background:var(--surf2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--mut);">
+    {% if icon %}
+      {{ icon|safe }}
+    {% else %}
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><path d="M21 21l-4.35-4.35"></path></svg>
+    {% endif %}
+  </div>
+  <div style="font-size:18px;font-weight:700;color:var(--fg);font-family:'Sora',sans-serif;">{{ title }}</div>
+  <p style="margin:0;font-size:14px;color:var(--mut);max-width:380px;line-height:1.5;">{{ description }}</p>
+  {% if action_text and action_href %}
+  <div style="margin-top:10px;">
+    {{ button(action_text, href=action_href, variant="primary") }}
+  </div>
+  {% endif %}
 </div>
 {% endmacro %}

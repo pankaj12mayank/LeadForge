@@ -1,99 +1,249 @@
 {% extends "layouts/app.html" %}
+{% from "components/macros.html" import pagination, badge, button, empty_state %}
+
 {% set active_page = 'leads' %}
 {% block title %}Leads — LeadForge{% endblock %}
 
 {% block content %}
-<h2 class="disp" style="font-size:30px;margin:0 0 12px;font-family:Sora;">Leads</h2>
+<div class="lf-view" style="display:flex;flex-direction:column;gap:20px;">
 
-<div style="display:flex;gap:12px;align-items:center;margin-bottom:16px;flex-wrap:wrap;">
-  <form hx-get="/leads" hx-target="#leads-table" hx-push-url="true" style="display:flex;gap:8px;flex:1;min-width:260px;">
-    <input type="hidden" name="q" value="{{ q }}">
-    <input type="hidden" name="tier" value="{{ tier }}">
-    <input type="hidden" name="status" value="{{ status }}">
-    <input type="hidden" name="sort" value="{{ sort }}">
-    <input type="text" name="q" placeholder="Search name, company, email…"
-      style="flex:1;padding:10px 14px;border:1px solid var(--line);border-radius:10px;background:var(--surf);color:var(--fg);font-size:14px;">
-    <select name="tier" onchange="this.form.requestSubmit()"
-      style="padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surf);color:var(--fg);font-size:13px;">
-      <option value="" {% if not tier %}selected{% endif %}>All tiers</option>
-      <option value="hot" {% if tier=='hot' %}selected{% endif %}>Hot</option>
-      <option value="warm" {% if tier=='warm' %}selected{% endif %}>Warm</option>
-      <option value="cold" {% if tier=='cold' %}selected{% endif %}>Cold</option>
-    </select>
-    <select name="status" onchange="this.form.requestSubmit()"
-      style="padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surf);color:var(--fg);font-size:13px;">
-      <option value="" {% if not status %}selected{% endif %}>All statuses</option>
-      <option value="new" {% if status=='new' %}selected{% endif %}>New</option>
-      <option value="contacted" {% if status=='contacted' %}selected{% endif %}>Contacted</option>
-      <option value="replied" {% if status=='replied' %}selected{% endif %}>Replied</option>
-      <option value="won" {% if status=='won' %}selected{% endif %}>Won</option>
-      <option value="lost" {% if status=='lost' %}selected{% endif %}>Lost</option>
-    </select>
-  </form>
-  <div style="display:flex;gap:8px;">
-    <a href="/leads/export?fmt=xlsx" class="lf-btn" style="padding:10px 16px;border-radius:10px;background:var(--acc);color:var(--accfg);border:none;font-size:13px;">Export XLSX</a>
-    <a href="/leads/export?fmt=csv" class="lf-btn lf-ghost" style="padding:10px 16px;border-radius:10px;border:1px solid var(--line);font-size:13px;">Export CSV</a>
+  <!-- FILTER & SEARCH TOOLBAR -->
+  <div class="lf-card" style="padding:18px 24px;border:1px solid var(--line);border-radius:20px;background:var(--surf);box-shadow:var(--shadow);box-sizing:border-box;">
+    <form id="leads-filter-form" method="get" action="/leads"
+          hx-get="/leads" hx-target="#leads-table-container" hx-select="#leads-table-container" hx-push-url="true"
+          style="display:flex;flex-wrap:wrap;align-items:center;gap:14px;justify-content:space-between;">
+      
+      <!-- Search Input -->
+      <div style="flex:1 1 280px;min-width:0;position:relative;">
+        <label for="lead-search-q" class="sr-only">Search leads</label>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--mut);pointer-events:none;"><circle cx="11" cy="11" r="8"></circle><path d="M21 21l-4.3-4.3"></path></svg>
+        <input id="lead-search-q" type="text" name="q" value="{{ q }}" placeholder="Search by name, company, email…"
+          class="lf-in" hx-trigger="keyup changed delay:350ms, search"
+          style="width:100%;box-sizing:border-box;padding:11px 14px 11px 40px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--fg);font-size:14px;min-height:44px;">
+      </div>
+
+      <!-- Filters & Sort -->
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;">
+        <!-- Tier filter -->
+        <select name="tier" class="lf-in" onchange="htmx.trigger('#leads-filter-form', 'submit')"
+          style="padding:10px 14px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--fg);font-size:14px;min-height:44px;cursor:pointer;">
+          <option value="">All Tiers</option>
+          <option value="hot" {% if tier == 'hot' %}selected{% endif %}>Hot (&ge;80)</option>
+          <option value="warm" {% if tier == 'warm' %}selected{% endif %}>Warm (60&ndash;79)</option>
+          <option value="cold" {% if tier == 'cold' %}selected{% endif %}>Cold (&lt;60)</option>
+        </select>
+
+        <!-- Status filter -->
+        <select name="status" class="lf-in" onchange="htmx.trigger('#leads-filter-form', 'submit')"
+          style="padding:10px 14px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--fg);font-size:14px;min-height:44px;cursor:pointer;">
+          <option value="">All Statuses</option>
+          <option value="new" {% if status == 'new' %}selected{% endif %}>New</option>
+          <option value="contacted" {% if status == 'contacted' %}selected{% endif %}>Contacted</option>
+          <option value="replied" {% if status == 'replied' %}selected{% endif %}>Replied</option>
+          <option value="disqualified" {% if status == 'disqualified' %}selected{% endif %}>Disqualified</option>
+        </select>
+
+        <!-- Sort -->
+        <select name="sort" class="lf-in" onchange="htmx.trigger('#leads-filter-form', 'submit')"
+          style="padding:10px 14px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--fg);font-size:14px;min-height:44px;cursor:pointer;">
+          <option value="score" {% if sort == 'score' %}selected{% endif %}>Sort by Score</option>
+          <option value="date" {% if sort == 'date' %}selected{% endif %}>Sort by Date</option>
+        </select>
+      </div>
+
+      <!-- Export Actions -->
+      <div style="display:flex;align-items:center;gap:8px;">
+        <a href="/leads/export?fmt=csv" class="lf-btn lf-ghost" style="padding:10px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surf2);color:var(--fg);font-size:13px;font-weight:700;min-height:44px;text-decoration:none;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          CSV
+        </a>
+        <a href="/leads/export?fmt=xlsx" class="lf-btn lf-ghost" style="padding:10px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surf2);color:var(--fg);font-size:13px;font-weight:700;min-height:44px;text-decoration:none;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          Excel
+        </a>
+      </div>
+    </form>
   </div>
-</div>
 
-<form method="post" action="/leads/bulk" hx-post="/leads/bulk" hx-target="#leads-table" hx-swap="innerHTML">
-  <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
-  <input type="hidden" name="q" value="{{ q }}">
-  <input type="hidden" name="tier" value="{{ tier }}">
-  <input type="hidden" name="status" value="{{ status }}">
-  <input type="hidden" name="sort" value="{{ sort }}">
+  <!-- TABLE CONTAINER (Swapped via HTMX) -->
+  <div id="leads-table-container" class="lf-card" style="border:1px solid var(--line);border-radius:20px;background:var(--surf);box-shadow:var(--shadow);box-sizing:border-box;overflow:hidden;">
+    
+    <!-- Bulk Action Header -->
+    <form id="leads-bulk-form" method="post" action="/leads/bulk"
+          hx-post="/leads/bulk" hx-target="#leads-table-container" hx-select="#leads-table-container">
+      <input type="hidden" name="status" value="contacted">
+      
+      <div style="padding:14px 24px;border-bottom:1px solid var(--line);background:var(--surf2);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--fg);cursor:pointer;">
+            <input type="checkbox" id="select-all-leads" onchange="lfToggleAllLeads(this.checked)" style="width:18px;height:18px;cursor:pointer;">
+            <span>Select all</span>
+          </label>
+          <span id="selected-lead-count" class="mono" style="font-size:12px;color:var(--mut);">0 selected</span>
+        </div>
 
-  <div id="leads-table" style="border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surf);">
-    <table style="width:100%;border-collapse:collapse;">
-      <thead>
-        <tr style="background:var(--surf2);">
-          <th style="padding:10px 14px;border-bottom:1px solid var(--line);font-size:11px;font-weight:600;color:var(--mut);width:32px;"><input type="checkbox" id="select-all" aria-label="Select all"></th>
-          <th style="padding:10px 14px;border-bottom:1px solid var(--line);font-size:11px;font-weight:600;color:var(--mut);text-align:left;">Name</th>
-          <th style="padding:10px 14px;border-bottom:1px solid var(--line);font-size:11px;font-weight:600;color:var(--mut);text-align:left;">Title</th>
-          <th style="padding:10px 14px;border-bottom:1px solid var(--line);font-size:11px;font-weight:600;color:var(--mut);text-align:left;">Company</th>
-          <th style="padding:10px 14px;border-bottom:1px solid var(--line);font-size:11px;font-weight:600;color:var(--mut);text-align:left;">Email</th>
-          <th style="padding:10px 14px;border-bottom:1px solid var(--line);font-size:11px;font-weight:600;color:var(--mut);text-align:left;">Source</th>
-          <th style="padding:10px 14px;border-bottom:1px solid var(--line);font-size:11px;font-weight:600;color:var(--mut);text-align:right;">Score</th>
-          <th style="padding:10px 14px;border-bottom:1px solid var(--line);font-size:11px;font-weight:600;color:var(--mut);text-align:left;">Tier</th>
-          <th style="padding:10px 14px;border-bottom:1px solid var(--line);font-size:11px;font-weight:600;color:var(--mut);text-align:left;">Status</th>
-        </tr>
-      </thead>
-      <tbody id="leads-body">
-      {% for l in leads %}
-        <tr style="border-bottom:1px solid var(--line);">
-          <td style="padding:10px 14px;"><input type="checkbox" name="ids" value="{{ l.id }}"></td>
-          <td style="padding:10px 14px;font-size:13px;color:var(--fg);font-weight:600;">{{ l.name }}</td>
-          <td style="padding:10px 14px;font-size:13px;color:var(--fg);">{{ l.title or '-' }}</td>
-          <td style="padding:10px 14px;font-size:13px;color:var(--fg);">{{ l.company or '-' }}</td>
-          <td style="padding:10px 14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--fg);">{{ l.email or '-' }}</td>
-          <td style="padding:10px 14px;font-size:12px;color:var(--mut);">{{ l.source or '-' }}</td>
-          <td style="padding:10px 14px;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;text-align:right;color:var(--fg);">{{ l.score if l.score is not none else '-' }}</td>
-          <td style="padding:10px 14px;font-size:12px;">
-            <span class="badge {{ 'ok' if l.tier=='hot' else 'warn' if l.tier=='warm' else '' }}">{{ l.tier or '-' }}</span>
-          </td>
-          <td style="padding:10px 14px;font-size:12px;color:var(--fg);">{{ l.status }}</td>
-        </tr>
+        <div>
+          <button type="submit" id="bulk-contacted-btn" disabled class="lf-btn lf-ghost"
+            style="padding:8px 16px;border:1px solid var(--line);border-radius:10px;background:var(--surf);color:var(--fg);font-size:13px;font-weight:700;min-height:38px;">
+            Mark contacted
+          </button>
+        </div>
+      </div>
+
+      <!-- Leads Table -->
+      {% if leads %}
+      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+        <table style="width:100%;border-collapse:collapse;text-align:left;font-size:14px;">
+          <thead>
+            <tr style="border-bottom:1px solid var(--line);background:var(--surf2);">
+              <th style="padding:12px 18px;width:32px;"></th>
+              <th style="padding:12px 18px;font-size:12px;font-weight:700;color:var(--mut);text-transform:uppercase;">Score</th>
+              <th style="padding:12px 18px;font-size:12px;font-weight:700;color:var(--mut);text-transform:uppercase;">Lead Name</th>
+              <th style="padding:12px 18px;font-size:12px;font-weight:700;color:var(--mut);text-transform:uppercase;">Company &amp; Title</th>
+              <th style="padding:12px 18px;font-size:12px;font-weight:700;color:var(--mut);text-transform:uppercase;">Contact Info</th>
+              <th style="padding:12px 18px;font-size:12px;font-weight:700;color:var(--mut);text-transform:uppercase;">Status</th>
+              <th style="padding:12px 18px;font-size:12px;font-weight:700;color:var(--mut);text-transform:uppercase;text-align:right;">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for l in leads %}
+            <tr class="lf-row" style="border-bottom:1px solid var(--line);">
+              <!-- Checkbox -->
+              <td style="padding:14px 18px;">
+                <input type="checkbox" name="ids" value="{{ l.id }}" onchange="lfUpdateSelectedCount()" class="lead-checkbox" style="width:18px;height:18px;cursor:pointer;">
+              </td>
+
+              <!-- Score Badge -->
+              <td style="padding:14px 18px;">
+                {% set sc = l.score or 0 %}
+                {% if sc >= 80 %}
+                  <span class="mono" style="padding:4px 10px;border-radius:8px;background:rgba(21,115,71,0.12);color:var(--ok);font-weight:700;border:1px solid rgba(21,115,71,0.25);">{{ sc }}</span>
+                {% elif sc >= 60 %}
+                  <span class="mono" style="padding:4px 10px;border-radius:8px;background:rgba(11,122,117,0.12);color:var(--acc2);font-weight:700;border:1px solid rgba(11,122,117,0.25);">{{ sc }}</span>
+                {% else %}
+                  <span class="mono" style="padding:4px 10px;border-radius:8px;background:var(--surf2);color:var(--mut);font-weight:700;border:1px solid var(--line);">{{ sc }}</span>
+                {% endif %}
+              </td>
+
+              <!-- Name -->
+              <td style="padding:14px 18px;">
+                <div style="display:flex;align-items:center;gap:12px;">
+                  <span class="disp" style="width:34px;height:34px;border-radius:10px;background:var(--surf2);color:var(--acc);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;">
+                    {{ (l.name[0] if l.name else 'L')|upper }}
+                  </span>
+                  <div>
+                    <div style="font-weight:700;color:var(--fg);">{{ l.name or 'Unknown Lead' }}</div>
+                    {% if l.linkedin_url %}
+                    <a href="{{ l.linkedin_url }}" target="_blank" rel="noopener" class="lf-link mono" style="font-size:11px;color:var(--acc2);">LinkedIn Profile &nearr;</a>
+                    {% endif %}
+                  </div>
+                </div>
+              </td>
+
+              <!-- Title & Company -->
+              <td style="padding:14px 18px;">
+                <div style="font-weight:600;color:var(--fg);">{{ l.title or 'Executive' }}</div>
+                <div style="font-size:12px;color:var(--mut);">{{ l.company or l.domain or 'Company' }}</div>
+              </td>
+
+              <!-- Contact -->
+              <td style="padding:14px 18px;">
+                <div class="mono" style="font-size:13px;color:var(--fg);">{{ l.email or 'No email' }}</div>
+                {% if l.phone %}
+                <div class="mono" style="font-size:12px;color:var(--mut);margin-top:2px;">{{ l.phone }}</div>
+                {% endif %}
+              </td>
+
+              <!-- Status Badge -->
+              <td style="padding:14px 18px;">
+                {% set st = l.status|string %}
+                {% if st == 'contacted' %}
+                  {{ badge("Contacted", kind="ok") }}
+                {% elif st == 'replied' %}
+                  {{ badge("Replied", kind="hot") }}
+                {% elif st == 'disqualified' %}
+                  {{ badge("Disqualified", kind="bad") }}
+                {% else %}
+                  {{ badge("New", kind="warn") }}
+                {% endif %}
+              </td>
+
+              <!-- Action -->
+              <td style="padding:14px 18px;text-align:right;">
+                {% if l.status != 'contacted' %}
+                <button type="button" onclick="lfMarkSingle({{ l.id }})" class="lf-btn lf-ghost"
+                  style="padding:6px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surf2);color:var(--fg);font-size:12px;font-weight:700;min-height:34px;">
+                  Mark contacted
+                </button>
+                {% else %}
+                <span class="mono" style="font-size:12px;color:var(--mut);">Contacted</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Server-side Pagination -->
+      <div style="padding:16px 24px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+        <div style="font-size:13px;color:var(--mut);">
+          Showing <span class="mono" style="font-weight:700;color:var(--fg);">{{ (page - 1) * page_size + 1 }}</span>&ndash;<span class="mono" style="font-weight:700;color:var(--fg);">{{ [page * page_size, total_leads]|min }}</span> of <span class="mono" style="font-weight:700;color:var(--fg);">{{ total_leads }}</span> leads
+        </div>
+
+        {% set page_url = '/leads?q=' ~ q ~ '&tier=' ~ tier ~ '&status=' ~ status ~ '&sort=' ~ sort %}
+        {{ pagination(page, total_pages, base_url=page_url, hx_target="#leads-table-container") }}
+      </div>
+
       {% else %}
-        <tr><td colspan="9" style="padding:24px 16px;color:var(--mut);text-align:center;">No leads yet. Create a search to get started.</td></tr>
-      {% endfor %}
-      </tbody>
-    </table>
+      <div style="padding:56px 24px;">
+        {{ empty_state(title="No matching leads found", description="Try adjusting your search filters or start a new natural-language search.", action_text="New search", action_href="javascript:lfOpenSearchModal()") }}
+      </div>
+      {% endif %}
+
+    </form>
   </div>
 
-  <div style="margin-top:14px;display:flex;gap:8px;align-items:center;">
-    <select name="status" style="padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surf);color:var(--fg);font-size:13px;">
-      <option value="contacted">Mark contacted</option>
-      <option value="replied">Mark replied</option>
-      <option value="won">Mark won</option>
-      <option value="lost">Mark lost</option>
-    </select>
-    <button class="lf-btn" style="padding:8px 16px;border-radius:8px;background:var(--acc);color:var(--accfg);border:none;font-size:13px;">Apply to selected</button>
-  </div>
-</form>
-
-{% if not leads %}
-<div style="margin-top:24px;text-align:center;color:var(--mut);padding:32px;">
-  <p style="margin:0;">No leads yet. <a href="/searches" class="lf-link" style="color:var(--acc);text-decoration:underline;">Create a search</a> to generate some.</p>
 </div>
-{% endif %}
+
+<script>
+  function lfToggleAllLeads(checked) {
+    document.querySelectorAll('.lead-checkbox').forEach(function(cb){
+      cb.checked = checked;
+    });
+    lfUpdateSelectedCount();
+  }
+
+  function lfUpdateSelectedCount() {
+    var cbs = document.querySelectorAll('.lead-checkbox:checked');
+    var count = cbs.length;
+    var el = document.getElementById('selected-lead-count');
+    if (el) el.textContent = count + ' selected';
+    var btn = document.getElementById('bulk-contacted-btn');
+    if (btn) btn.disabled = (count === 0);
+  }
+
+  function lfMarkSingle(id) {
+    var form = document.createElement('form');
+    form.method = 'post';
+    form.action = '/leads/bulk';
+    var idInput = document.createElement('input');
+    idInput.type = 'hidden';
+    idInput.name = 'ids';
+    idInput.value = id;
+    form.appendChild(idInput);
+    var statusInput = document.createElement('input');
+    statusInput.type = 'hidden';
+    statusInput.name = 'status';
+    statusInput.value = 'contacted';
+    form.appendChild(statusInput);
+    document.body.appendChild(form);
+    htmx.ajax('POST', '/leads/bulk', {
+      values: { ids: [id], status: 'contacted' },
+      target: '#leads-table-container',
+      select: '#leads-table-container'
+    });
+    form.remove();
+  }
+</script>
 {% endblock %}

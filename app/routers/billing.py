@@ -1,17 +1,17 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import json
 
-from fastapi import APIRouter, Depends, Header, Request
+from fastapi import APIRouter, Depends, Form, Header, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, PlainTextResponse
 from sqlalchemy.orm import Session
 
-from app.auth.deps import current_org_id, require_user, require_user
+from app.auth.deps import current_org_id, require_user
 from app.config import settings
 from app.db import SessionLocal, get_db
 from app.models import Plan, Subscription, SubStatus
 from app.services.integrations import verify_razorpay_signature
-from app.services.quota import add_credits
+from app.services.quota import get_credits
 
 router = APIRouter()
 
@@ -32,7 +32,7 @@ def pricing_page(request: Request, user=Depends(require_user)):
 
 
 @router.post("/billing/subscribe")
-def subscribe(request: Request, org_id: int = Depends(current_org_id), plan_code: str = "pro"):
+def subscribe(request: Request, org_id: int = Depends(current_org_id), plan_code: str = Form("pro")):
     db = SessionLocal()
     try:
         sub = (
@@ -41,25 +41,31 @@ def subscribe(request: Request, org_id: int = Depends(current_org_id), plan_code
             .order_by(Subscription.created_at.desc())
             .first()
         )
+        plan = db.query(Plan).filter(Plan.code == plan_code).first()
         # Stub: in production create a Razorpay subscription here and redirect to checkout.
         if sub:
+            if plan:
+                sub.plan_id = plan.id
             sub.status = SubStatus.active
         else:
-            from app.models import Plan, Subscription
-
-            plan = db.query(Plan).filter(Plan.code == plan_code).first()
-            db.add(
-                Subscription(
-                    org_id=org_id,
-                    plan_id=plan.id,
-                    status=SubStatus.active,
-                    razorpay_subscription_id=f"sub_stub_{org_id}",
+            if plan:
+                db.add(
+                    Subscription(
+                        org_id=org_id,
+                        plan_id=plan.id,
+                        status=SubStatus.active,
+                        razorpay_subscription_id=f"sub_stub_{org_id}",
+                    )
                 )
-            )
         db.commit()
+        plan_name = plan.name if plan else plan_code
     finally:
         db.close()
-    return RedirectResponse(url="/billing/portal", status_code=303)
+    return RedirectResponse(
+        url="/billing/portal",
+        status_code=303,
+        headers={"HX-Trigger": '{"toast":{"kind":"ok","title":"Plan updated","msg":"Switched to ' + plan_name + '"}}'}
+    )
 
 
 @router.get("/billing/portal")
@@ -71,11 +77,18 @@ def billing_portal(request: Request, user=Depends(require_user), org_id: int = D
         .first()
     )
     plan = db.get(Plan, sub.plan_id) if sub else None
+    plans = db.query(Plan).order_by(Plan.price_inr).all()
+    credits = get_credits(org_id, db)
     return _render(
         request,
         "portal.html",
+        active_page="billing",
+        page_title="Billing & Plans",
+        page_sub="Manage your organization subscription and credit allowance",
         sub=sub,
         plan=plan,
+        plans=plans,
+        credits=credits,
         settings=settings,
         razorpay_key=settings.RAZORPAY_KEY_ID,
         mode=settings.RAZORPAY_MODE,

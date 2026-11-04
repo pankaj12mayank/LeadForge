@@ -1,33 +1,107 @@
 {% extends "layouts/app.html" %}
+{% from "components/macros.html" import badge, button %}
+
 {% set active_page = 'billing' %}
-{% block title %}Billing — LeadForge{% endblock %}
+{% block title %}Billing &amp; Plan — LeadForge{% endblock %}
 
 {% block content %}
-<h2 class="disp" style="font-size:30px;margin:0 0 16px;font-family:Sora;">Billing portal</h2>
+<div class="lf-view" style="display:flex;flex-direction:column;gap:24px;max-width:1000px;">
 
-{% if sub and plan %}
-<div class="lf-card" style="border:1px solid var(--line);border-radius:16px;padding:28px;max-width:520px;">
-  <h3 style="font-size:18px;margin:0 0 8px;font-family:Sora;">{{ plan.code|upper }} plan</h3>
-  <p style="font-size:13px;color:var(--mut);margin:0 0 16px;">Status: <span class="badge {{ 'ok' if sub.status=='active' else 'warn' }}">{{ sub.status }}</span></p>
-  {% if sub.razorpay_subscription_id %}
-  <p style="font-size:12px;color:var(--mut);font-family:'JetBrains Mono',monospace;margin:0 0 16px;">Razorpay: {{ sub.razorpay_subscription_id }}</p>
-  {% endif %}
-  <form method="post" action="/billing/subscribe" style="margin-top:16px;">
-    <input type="hidden" name="plan_code" value="pro">
-    <button class="lf-btn" style="padding:12px 24px;border-radius:10px;background:var(--acc);color:var(--accfg);border:none;font-weight:600;">Manage subscription (Razorpay)</button>
-  </form>
-</div>
-{% else %}
-<div class="lf-card" style="border:1px solid var(--line);border-radius:16px;padding:28px;max-width:520px;background:#fdf0e0;border-color:#f2c99e;">
-  <h3 style="font-size:18px;margin:0 0 8px;font-family:Sora;color:#8a3d06;">No active subscription</h3>
-  <p style="font-size:13px;color:var(--mut);margin:0 0 16px;">You&rsquo;re on a trial. Subscribe to Pro to keep creating jobs after the trial ends.</p>
-  <form method="post" action="/billing/subscribe?plan_code=pro">
-    <button class="lf-btn" style="padding:12px 24px;border-radius:10px;background:var(--acc);color:var(--accfg);border:none;font-weight:600;">Subscribe to Pro</button>
-  </form>
-</div>
-{% endif %}
+  <!-- CURRENT PLAN STATUS BANNER -->
+  <div class="lf-card" style="padding:28px 32px;border:1px solid var(--line);border-radius:22px;background:var(--surf);box-shadow:var(--shadow);box-sizing:border-box;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:20px;">
+    <div>
+      <div style="font-size:12px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:0.04em;">Active Plan</div>
+      <div style="display:flex;align-items:center;gap:12px;margin-top:4px;">
+        <h2 style="margin:0;font-size:26px;font-weight:700;color:var(--fg);font-family:'Sora',sans-serif;">
+          {{ plan.name if plan else 'Starter Trial' }}
+        </h2>
+        {% if sub and sub.status == 'active' %}
+          {{ badge("Active Subscription", kind="ok") }}
+        {% elif sub and sub.status == 'trialing' %}
+          {{ badge("Free Trial", kind="warn") }}
+        {% else %}
+          {{ badge("No Active Subscription", kind="bad") }}
+        {% endif %}
+      </div>
+      <div style="margin-top:6px;font-size:14px;color:var(--mut);">
+        Current credit balance: <span class="mono" style="font-weight:700;color:var(--fg);">{{ credits }}</span> credits remaining
+      </div>
+      {% if sub and sub.razorpay_subscription_id %}
+      <div class="mono" style="margin-top:6px;font-size:12px;color:var(--mut);">
+        Razorpay ID: {{ sub.razorpay_subscription_id }} (Mode: {{ mode }})
+      </div>
+      {% endif %}
+    </div>
 
-<div style="margin-top:24px;">
-  <a href="/dashboard" class="lf-btn lf-ghost" style="padding:10px 20px;border-radius:8px;border:1px solid var(--line);">Back to dashboard</a>
+    <div>
+      <button type="button" onclick="lfOpenSearchModal()" class="lf-btn" style="padding:12px 22px;border:0;border-radius:12px;background:var(--acc);color:var(--accfg);font-weight:700;font-size:14px;min-height:44px;">
+        Use credits
+      </button>
+    </div>
+  </div>
+
+  <!-- PLAN CARDS GRID -->
+  <div>
+    <h3 style="margin:0 0 16px;font-size:18px;font-weight:700;color:var(--fg);font-family:'Sora',sans-serif;">Available plans</h3>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:24px;">
+      {% set plan_list = plans if plans else [
+        {'code':'starter','name':'Starter','price_inr':0,'monthly_credits':50,'seats':1,'features':{'sources':['apollo','websearch']}},
+        {'code':'pro','name':'Pro','price_inr':0,'monthly_credits':300,'seats':5,'features':{'sources':['apollo','websearch','places'],'openers':True,'api':True}}
+      ] %}
+
+      {% for p in plan_list %}
+      {% set is_current = (plan and plan.code == p.code) %}
+      {% set is_pro = (p.code == 'pro') %}
+      <div class="lf-card" style="padding:32px;border:1px solid {{ 'var(--acc)' if is_current else 'var(--line)' }};border-radius:24px;background:var(--surf);box-shadow:{{ 'var(--shadow-h)' if is_current else 'var(--shadow)' }};display:flex;flex-direction:column;justify-content:space-between;gap:24px;position:relative;">
+        {% if is_current %}
+        <span style="position:absolute;top:18px;right:18px;padding:4px 10px;border-radius:999px;background:var(--acc);color:var(--accfg);font-size:12px;font-weight:700;">CURRENT PLAN</span>
+        {% endif %}
+
+        <div>
+          <h3 style="font-size:22px;margin:0;font-weight:700;color:var(--fg);">{{ p.name }}</h3>
+          <div style="display:flex;align-items:baseline;gap:6px;margin-top:14px;">
+            <span class="disp" style="font-size:36px;font-weight:700;color:var(--fg);">&#8377;{{ p.price_inr }}</span>
+            <span style="font-size:14px;color:var(--mut);">/ month</span>
+          </div>
+
+          <div style="margin-top:16px;padding:12px 16px;border-radius:12px;background:var(--surf2);border:1px solid var(--line);font-size:13px;font-weight:700;color:var(--fg);">
+            <span class="mono">{{ p.monthly_credits }}</span> credits / mo &bull; <span class="mono">{{ p.seats }}</span> seat{{ 's' if p.seats != 1 else '' }}
+          </div>
+
+          <ul style="margin:20px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px;font-size:14px;color:var(--mut);">
+            {% if is_pro %}
+            <li style="display:flex;align-items:center;gap:10px;"><span style="color:var(--ok);font-weight:700;">&#10003;</span> Apollo, Web &amp; Google Places sources</li>
+            <li style="display:flex;align-items:center;gap:10px;"><span style="color:var(--ok);font-weight:700;">&#10003;</span> AI personalized outreach openers</li>
+            <li style="display:flex;align-items:center;gap:10px;"><span style="color:var(--ok);font-weight:700;">&#10003;</span> Full REST API access</li>
+            <li style="display:flex;align-items:center;gap:10px;"><span style="color:var(--ok);font-weight:700;">&#10003;</span> Saved recurring searches</li>
+            <li style="display:flex;align-items:center;gap:10px;"><span style="color:var(--ok);font-weight:700;">&#10003;</span> Up to {{ p.seats }} team seats</li>
+            {% else %}
+            <li style="display:flex;align-items:center;gap:10px;"><span style="color:var(--ok);font-weight:700;">&#10003;</span> Apollo + Web search sources</li>
+            <li style="display:flex;align-items:center;gap:10px;"><span style="color:var(--ok);font-weight:700;">&#10003;</span> Standard AI scoring &amp; dedupe</li>
+            <li style="display:flex;align-items:center;gap:10px;"><span style="color:var(--ok);font-weight:700;">&#10003;</span> CSV &amp; Excel downloads</li>
+            <li style="display:flex;align-items:center;gap:10px;"><span style="color:var(--ok);font-weight:700;">&#10003;</span> {{ p.seats }} team seat</li>
+            {% endif %}
+          </ul>
+        </div>
+
+        <div>
+          {% if is_current %}
+          <button disabled class="lf-btn" style="width:100%;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--surf2);color:var(--mut);font-weight:700;font-size:14px;min-height:44px;cursor:default;">
+            Active on this plan
+          </button>
+          {% else %}
+          <form method="post" action="/billing/subscribe">
+            <input type="hidden" name="plan_code" value="{{ p.code }}">
+            <button type="submit" class="lf-btn" style="width:100%;padding:12px;border:0;border-radius:12px;background:var(--acc);color:var(--accfg);font-weight:700;font-size:14px;min-height:44px;">
+              Switch to {{ p.name }}
+            </button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
 </div>
 {% endblock %}

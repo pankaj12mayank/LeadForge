@@ -1,17 +1,47 @@
 {% extends "layouts/public.html" %}
-{% block title %}Privacy — LeadForge{% endblock %}
+{% block title %}Privacy Policy — LeadForge{% endblock %}
 
 {% block content %}
-<section style="padding:64px 20px;max-width:700px;margin:0 auto;">
-  <h1 class="disp" style="font-size:36px;margin:0 0 20px;font-family:Sora;">Privacy Policy</h1>
-  <p style="font-size:15px;color:var(--mut);line-height:1.6;margin:0 0 16px;">
-    LeadForge processes leads from licensed third-party data providers (Apollo, Hunter, Skrapp, Tavily/Serper, Google Places)
-    and from your own searches. We do not sell your data.
-  </p>
-  <p style="font-size:15px;color:var(--mut);line-height:1.6;margin:0 0 16px;">
-    Organization data is isolated by org_id. Credits, subscriptions, and leads belong to your organization. All secrets
-    come from environment variables only &mdash; nothing is logged or hardcoded.
-  </p>
-  <p style="font-size:15px;color:var(--mut);margin:0;">Contact: privacy@leadforge.local</p>
+<nav style="border-bottom:1px solid var(--line);background:var(--surf);">
+  <div style="max-width:1200px;margin:0 auto;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;">
+    <a href="/" style="display:flex;align-items:center;gap:12px;text-decoration:none;" aria-label="LeadForge home">
+      <svg width="34" height="34" viewBox="0 0 40 40" aria-hidden="true">
+        <rect width="40" height="40" rx="10" fill="var(--acc)"></rect>
+        <path d="M8 10h24v6H8z" fill="var(--accfg)"></path>
+        <path d="M11 18h18l-5 8v3h-8v-3z" fill="var(--accfg)"></path>
+        <rect x="12" y="31" width="16" height="3" rx="1.5" fill="var(--accfg)"></rect>
+      </svg>
+      <span class="disp" style="font-weight:700;font-size:20px;color:var(--fg);">LeadForge</span>
+    </a>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <button class="lf-btn lf-ghost" onclick="lfToggleTheme()" aria-label="Toggle light and dark theme" style="width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--surf);color:var(--fg);display:flex;align-items:center;justify-content:center;">
+        <svg class="lf-theme-icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="display:none;"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+        <svg class="lf-theme-icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg>
+      </button>
+      <a href="/auth/login" class="lf-btn lf-ghost" style="padding:11px 18px;border-radius:12px;border:1px solid var(--line);background:var(--surf2);color:var(--fg);font-weight:700;font-size:14px;min-height:44px;text-decoration:none;">Sign in</a>
+    </div>
+  </div>
+</nav>
+
+<section style="padding:72px 24px;max-width:760px;margin:0 auto;flex:1 0 auto;width:100%;box-sizing:border-box;">
+  <div class="lf-card" style="padding:40px;border:1px solid var(--line);border-radius:24px;background:var(--surf);box-shadow:var(--shadow);">
+    <h1 style="font-size:32px;margin:0 0 20px;font-weight:700;color:var(--fg);">Privacy Policy</h1>
+    <p style="font-size:15px;color:var(--mut);line-height:1.7;margin:0 0 16px;">
+      LeadForge processes leads from licensed third-party data providers (Apollo, Hunter, Skrapp, Tavily/Serper, Google Places)
+      and from your own search criteria. We do not sell your personal data.
+    </p>
+    <p style="font-size:15px;color:var(--mut);line-height:1.7;margin:0 0 16px;">
+      Organization data is completely isolated by organization ID. Credits, subscriptions, searches, and sourced leads belong strictly to your organization. All credentials and API keys come from environment variables.
+    </p>
+    <div style="margin-top:28px;padding-top:20px;border-top:1px solid var(--line);font-size:14px;color:var(--fg);font-weight:600;">
+      Contact: <a href="mailto:privacy@leadforge.local" class="lf-link" style="color:var(--acc);">privacy@leadforge.local</a>
+    </div>
+  </div>
 </section>
+
+<footer style="padding:32px 24px;border-top:1px solid var(--line);text-align:center;font-size:13px;color:var(--mut);">
+  <a href="/terms" class="lf-link">Terms</a> &bull;
+  <a href="/pricing" class="lf-link">Pricing</a> &bull;
+  <a href="/" class="lf-link">Home</a>
+</footer>
 {% endblock %}

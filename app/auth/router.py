@@ -2,26 +2,25 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, Form, Request
+from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
-from sqlalchemy.orm import Session
 
-from app.auth.deps import current_user, current_org_id, require_user
 from app.auth.security import (
     create_csrf_token,
     create_session_token,
     hash_password,
     read_session_token,
     verify_csrf_token,
+    verify_password as vp,
 )
 from app.config import settings
-from app.db import SessionLocal, get_db
+from app.db import SessionLocal
 from app.models import (
-    Base,
     CreditLedger,
     Membership,
     Organization,
     Plan,
+    Role,
     Subscription,
     SubStatus,
     User,
@@ -43,6 +42,10 @@ def _render(request: Request, template: str, status_code: int = 200, user=None, 
     )
 
 
+def verify_password(password: str, hashed: str) -> bool:
+    return vp(password, hashed)
+
+
 @router.get("/auth/login", name="login_page")
 async def login_page(request: Request):
     return _render(request, "auth/login.html", csrf_token=create_csrf_token("login"))
@@ -61,7 +64,8 @@ async def login(request: Request, email: str = Form(...), password: str = Form(.
             return HTMLResponse(
                 "Account disabled", status_code=403, headers={"HX-Redirect": "/auth/login"}
             )
-        resp = RedirectResponse(url="/dashboard", status_code=303)
+        target = "/admin" if getattr(user, "role", None) in (Role.admin, "admin") else "/dashboard"
+        resp = RedirectResponse(url=target, status_code=303)
         resp.set_cookie(
             SESSION_NAME,
             create_session_token(user.id),
@@ -106,7 +110,7 @@ async def signup(request: Request, email: str = Form(...), password: str = Form(
         db.add(Membership(org_id=org.id, user_id=user.id, role="owner"))
         sub = Subscription(
             org_id=org.id,
-            plan_id=plan.id,
+            plan_id=plan.id if plan else None,
             status=SubStatus.trialing,
             trial_ends_at=trial_ends,
         )
@@ -120,7 +124,8 @@ async def signup(request: Request, email: str = Form(...), password: str = Form(
             )
         )
         db.commit()
-        resp = RedirectResponse(url="/dashboard", status_code=303)
+        target = "/admin" if getattr(user, "role", None) in (Role.admin, "admin") else "/dashboard"
+        resp = RedirectResponse(url=target, status_code=303)
         resp.set_cookie(
             SESSION_NAME,
             create_session_token(user.id),
@@ -165,22 +170,15 @@ async def reset_page(request: Request, token: str = ""):
 
 @router.post("/auth/reset")
 async def reset(request: Request, token: str = Form(...), password: str = Form(...)):
-    from app.auth.security import read_session_token
-
     uid = read_session_token(token, max_age=60 * 60)
     if not uid:
         return HTMLResponse("Invalid or expired token", status_code=400)
     db = SessionLocal()
     try:
         user = db.get(User, uid)
-        user.password_hash = hash_password(password)
-        db.commit()
+        if user:
+            user.password_hash = hash_password(password)
+            db.commit()
     finally:
         db.close()
     return RedirectResponse(url="/auth/login", status_code=303)
-
-
-def verify_password(password: str, hashed: str) -> bool:
-    from app.auth.security import verify_password as vp
-
-    return vp(password, hashed)

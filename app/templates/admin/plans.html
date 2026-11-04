@@ -1,48 +1,65 @@
 {% extends "layouts/admin.html" %}
 {% set active_page = 'plans' %}
-{% block title %}Plans — LeadForge{% endblock %}
+{% block title %}Plans Editor — LeadForge{% endblock %}
 
 {% block content %}
-<h2 class="disp" style="font-size:30px;margin:0 0 16px;font-family:Sora;">Plans editor</h2>
-<p style="font-size:13px;color:var(--mut);margin:0 0 20px;">Changes apply to new subscription periods. Existing subscriptions keep their current plan until changed.</p>
+<div class="lf-view" style="display:flex;flex-direction:column;gap:20px;">
 
-<div class="lf-card" style="border:1px solid var(--line);border-radius:12px;overflow:hidden;">
-<table style="width:100%;border-collapse:collapse;">
-  <thead>
-    <tr style="background:var(--surf2);">
-      <th style="padding:12px 16px;border-bottom:1px solid var(--line);font-size:12px;font-weight:600;color:var(--mut);text-align:left;">Plan</th>
-      <th style="padding:12px 16px;border-bottom:1px solid var(--line);font-size:12px;font-weight:600;color:var(--mut);text-align:left;">Price (INR)</th>
-      <th style="padding:12px 16px;border-bottom:1px solid var(--line);font-size:12px;font-weight:600;color:var(--mut);text-align:left;">Credits/mo</th>
-      <th style="padding:12px 16px;border-bottom:1px solid var(--line);font-size:12px;font-weight:600;color:var(--mut);text-align:left;">Seats</th>
-      <th style="padding:12px 16px;border-bottom:1px solid var(--line);font-size:12px;font-weight:600;color:var(--mut);text-align:left;">Features</th>
-      <th style="padding:12px 16px;border-bottom:1px solid var(--line);font-size:12px;font-weight:600;color:var(--mut);text-align:left;">Edit</th>
-    </tr>
-  </thead>
-  <tbody>
-  {% for p in plans %}
-    <tr style="border-bottom:1px solid var(--line);">
-      <td style="padding:12px 16px;font-size:13px;color:var(--fg);font-weight:600;">{{ p.name }}</td>
-      <td style="padding:12px 16px;font-size:13px;font-family:'JetBrains Mono',monospace;color:var(--fg);">&#8377;{{ p.price_inr }}</td>
-      <td style="padding:12px 16px;font-size:13px;font-family:'JetBrains Mono',monospace;color:var(--fg);">{{ p.monthly_credits }}</td>
-      <td style="padding:12px 16px;font-size:13px;font-family:'JetBrains Mono',monospace;color:var(--fg);">{{ p.seats }}</td>
-      <td style="padding:12px 16px;font-size:12px;color:var(--mut);">
+  <div id="plans-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:20px;">
+    {% for p in plans %}
+    <form method="post" action="/admin/plans/{{ p.id }}/edit"
+          hx-post="/admin/plans/{{ p.id }}/edit"
+          hx-target="#plans-grid"
+          hx-select="#plans-grid"
+          class="lf-card" style="padding:28px;border:1px solid var(--line);border-radius:22px;background:var(--surf);box-shadow:var(--shadow);display:flex;flex-direction:column;gap:18px;">
+      
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <h3 style="margin:0;font-size:22px;font-weight:700;color:var(--fg);font-family:Sora;">{{ p.name }}</h3>
+          <div style="font-size:13px;color:var(--mut);margin-top:2px;">Code: <span class="mono">{{ p.code }}</span></div>
+        </div>
+        <span class="mono" style="font-size:12px;color:var(--mut);padding:4px 10px;border-radius:6px;background:var(--surf2);border:1px solid var(--line);">plans table</span>
+      </div>
+
+      <!-- Price (INR) -->
+      <div>
+        <label for="p-{{ p.id }}-price" style="font-size:13px;font-weight:700;color:var(--fg);">Monthly Price (₹ INR)</label>
+        <input id="p-{{ p.id }}-price" class="lf-in mono" type="number" name="price_inr" value="{{ p.price_inr }}" required
+               style="margin-top:6px;width:100%;box-sizing:border-box;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--fg);font-size:15px;min-height:44px;">
+      </div>
+
+      <!-- Credits per month -->
+      <div>
+        <label for="p-{{ p.id }}-credits" style="font-size:13px;font-weight:700;color:var(--fg);">Credits per month</label>
+        <input id="p-{{ p.id }}-credits" class="lf-in mono" type="number" name="monthly_credits" value="{{ p.monthly_credits }}" required
+               style="margin-top:6px;width:100%;box-sizing:border-box;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--fg);font-size:15px;min-height:44px;">
+      </div>
+
+      <!-- Seats -->
+      <div>
+        <label for="p-{{ p.id }}-seats" style="font-size:13px;font-weight:700;color:var(--fg);">Seats included</label>
+        <input id="p-{{ p.id }}-seats" class="lf-in mono" type="number" name="seats" value="{{ p.seats }}" required
+               style="margin-top:6px;width:100%;box-sizing:border-box;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--fg);font-size:15px;min-height:44px;">
+      </div>
+
+      <!-- Feature pills -->
+      <div style="display:flex;flex-wrap:wrap;gap:8px;padding:6px 0;">
         {% for k, v in (p.features or {}).items() %}
-        {% if v %}{{ k.replace('_',' ') | title }}, {% endif %}
+        {% if v %}
+        <span style="padding:6px 12px;border-radius:999px;background:var(--surf2);border:1px solid var(--line);font-size:12px;font-weight:700;color:var(--fg);">
+          {{ k.replace('_', ' ')|title }}
+        </span>
+        {% endif %}
         {% endfor %}
-      </td>
-      <td style="padding:12px 16px;">
-        <form method="post" action="/admin/plans/{{ p.id }}/edit" hx-post="/admin/plans/{{ p.id }}/edit" hx-swap="none" style="display:flex;gap:6px;">
-          <input type="number" name="price_inr" value="{{ p.price_inr }}" style="width:70px;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surf);color:var(--fg);font-family:'JetBrains Mono',monospace;">
-          <input type="number" name="monthly_credits" value="{{ p.monthly_credits }}" style="width:70px;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surf);color:var(--fg);font-family:'JetBrains Mono',monospace;">
-          <input type="number" name="seats" value="{{ p.seats }}" style="width:50px;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surf);color:var(--fg);font-family:'JetBrains Mono',monospace;">
-          <button class="lf-btn" style="padding:6px 12px;border-radius:6px;background:var(--acc);color:var(--accfg);border:none;font-size:12px;">Save</button>
-        </form>
-      </td>
-    </tr>
-  {% else %}
-    <tr><td colspan="6" style="padding:24px 16px;color:var(--mut);text-align:center;">No plans.</td></tr>
-  {% endfor %}
-  </tbody>
-</table>
+      </div>
+
+      <button type="submit" class="lf-btn" style="margin-top:auto;padding:13px;border:0;border-radius:12px;background:var(--acc);color:var(--accfg);font-weight:700;font-size:15px;min-height:44px;cursor:pointer;">
+        Save {{ p.name }}
+      </button>
+
+    </form>
+    {% endfor %}
+  </div>
+
 </div>
 {% endblock %}

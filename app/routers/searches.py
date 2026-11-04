@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from datetime import datetime, timezone
 
@@ -6,11 +6,11 @@ from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 
-from app.auth.deps import current_user, current_org_id, require_user
+from app.auth.deps import current_org_id, require_user
 from app.config import settings
-from app.db import SessionLocal, get_db
-from app.models import Job, JobStatus, Search
-from app.services.quota import has_credits
+from app.db import get_db
+from app.models import Job, JobStatus, Plan, Search, Subscription
+from app.services.quota import get_credits, has_credits
 
 router = APIRouter()
 
@@ -33,7 +33,15 @@ def searches_list(request: Request, user=Depends(require_user), org_id: int = De
         .order_by(Search.created_at.desc())
         .all()
     )
-    return _render(request, "searches.html", searches=searches, settings=settings, user=user)
+    credits = get_credits(org_id, db)
+    sub = (
+        db.query(Subscription)
+        .filter(Subscription.org_id == org_id)
+        .order_by(Subscription.created_at.desc())
+        .first()
+    )
+    plan = db.get(Plan, sub.plan_id) if sub else None
+    return _render(request, "searches.html", searches=searches, credits=credits, sub=sub, plan=plan, settings=settings, user=user)
 
 
 @router.post("/searches")
@@ -71,7 +79,20 @@ def job_page(request: Request, job_id: int, user=Depends(require_user), org_id: 
     job = db.get(Job, job_id)
     if not job or job.org_id != org_id:
         return HTMLResponse("Not found", status_code=404)
-    return _render(request, "job.html", job=job, settings=settings, user=user)
+    credits = get_credits(org_id, db)
+    sub = (
+        db.query(Subscription)
+        .filter(Subscription.org_id == org_id)
+        .order_by(Subscription.created_at.desc())
+        .first()
+    )
+    plan = db.get(Plan, sub.plan_id) if sub else None
+    return _render(request, "job.html", job=job, credits=credits, sub=sub, plan=plan, settings=settings, user=user)
+
+
+@router.get("/searches/{job_id}")
+def search_job_alias(job_id: int):
+    return RedirectResponse(url=f"/jobs/{job_id}", status_code=307)
 
 
 @router.get("/jobs/{job_id}/status")

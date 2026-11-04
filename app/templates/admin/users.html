@@ -3,71 +3,321 @@
 {% block title %}Users &amp; Orgs — LeadForge{% endblock %}
 
 {% block content %}
-<h2 class="disp" style="font-size:30px;margin:0 0 16px;font-family:Sora;">Users &amp; organizations</h2>
+<div id="users-table-container" class="lf-view" hx-select="#users-table-container" style="display:flex;flex-direction:column;gap:20px;">
 
-<div class="lf-card" style="border:1px solid var(--line);border-radius:12px;overflow:hidden;">
-<table style="width:100%;border-collapse:collapse;">
-  <thead>
-    <tr style="background:var(--surf2);">
-      <th style="padding:12px 16px;border-bottom:1px solid var(--line);font-size:12px;font-weight:600;color:var(--mut);text-align:left;">User</th>
-      <th style="padding:12px 16px;border-bottom:1px solid var(--line);font-size:12px;font-weight:600;color:var(--mut);text-align:left;">Org</th>
-      <th style="padding:12px 16px;border-bottom:1px solid var(--line);font-size:12px;font-weight:600;color:var(--mut);text-align:left;">Role</th>
-      <th style="padding:12px 16px;border-bottom:1px solid var(--line);font-size:12px;font-weight:600;color:var(--mut);text-align:left;">Credits</th>
-      <th style="padding:12px 16px;border-bottom:1px solid var(--line);font-size:12px;font-weight:600;color:var(--mut);text-align:left;">Plan</th>
-      <th style="padding:12px 16px;border-bottom:1px solid var(--line);font-size:12px;font-weight:600;color:var(--mut);text-align:left;">Status</th>
-      <th style="padding:12px 16px;border-bottom:1px solid var(--line);font-size:12px;font-weight:600;color:var(--mut);text-align:left;">Actions</th>
-    </tr>
-  </thead>
-  <tbody>
-  {% for u in users %}
-    {% set memberships = u.memberships if u.memberships else [] %}
-    {% set primary_org = memberships[0].org if memberships else none %}
-    {% set credits = org_credits.get(primary_org.id, 0) if primary_org else 0 %}
-    {% set plan_name = org_plan.get(primary_org.id, 'trial') if primary_org else 'trial' %}
-    <tr style="border-bottom:1px solid var(--line);">
-      <td style="padding:12px 16px;font-size:13px;color:var(--fg);font-weight:600;">{{ u.name or u.email }}</td>
-      <td style="padding:12px 16px;font-size:13px;color:var(--fg);">{{ primary_org.name if primary_org else '-' }}</td>
-      <td style="padding:12px 16px;font-size:12px;color:var(--fg);">{{ memberships[0].role if memberships else '-' }}</td>
-      <td style="padding:12px 16px;font-size:13px;font-family:'JetBrains Mono',monospace;color:var(--fg);">{{ credits }}</td>
-      <td style="padding:12px 16px;font-size:13px;color:var(--fg);">{{ plan_name }}</td>
-      <td style="padding:12px 16px;font-size:12px;">
-        <span class="badge {{ 'ok' if u.is_active else 'bad' }}">
-          {{ 'Active' if u.is_active else 'Suspended' }}
+  <!-- SEARCH & FILTER TOOLBAR -->
+  <div class="lf-card" style="border:1px solid var(--line);border-radius:20px;background:var(--surf);box-shadow:var(--shadow);overflow:hidden;">
+    
+    <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:18px 20px;border-bottom:1px solid var(--line);">
+      
+      <!-- Search Input -->
+      <div style="position:relative;flex:1 1 240px;min-width:0;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--mut)" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="position:absolute;left:14px;top:13px;">
+          <path d="M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM21 21l-5-5"></path>
+        </svg>
+        <label for="uq" style="position:absolute;left:-9999px;">Search name or email</label>
+        <input id="uq" class="lf-in" name="q" value="{{ q }}"
+               hx-get="/admin/users"
+               hx-trigger="input changed delay:350ms, search"
+               hx-target="#users-table-container"
+               hx-push-url="true"
+               hx-include="[name='plan_filter']"
+               placeholder="Search name, email, or organization"
+               style="width:100%;box-sizing:border-box;padding:11px 14px 11px 42px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--fg);font-size:14px;min-height:44px;">
+      </div>
+
+      <!-- Plan Filter Dropdown -->
+      <div class="lf-dropdown-wrapper" style="position:relative;">
+        <button class="lf-btn lf-ghost" onclick="lfToggleDropdown('admin-plan-dropdown', event)" aria-haspopup="listbox" style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surf2);color:var(--fg);font-weight:700;font-size:14px;min-height:44px;">
+          <span>Plan: {{ plan_filter|title if plan_filter and plan_filter != 'all' else 'All' }}</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>
+        </button>
+
+        <div id="admin-plan-dropdown" class="lf-dropdown-menu lf-modal" role="listbox" style="display:none;position:absolute;right:0;top:calc(100% + 8px);z-index:30;min-width:180px;padding:6px;border:1px solid var(--line);border-radius:14px;background:var(--surf);box-shadow:var(--shadow-h);">
+          <a href="/admin/users?q={{ q }}&plan_filter=all" hx-get="/admin/users?q={{ q }}&plan_filter=all" hx-target="#users-table-container" hx-push-url="true" class="lf-row" role="option" style="display:flex;width:100%;justify-content:space-between;align-items:center;padding:10px 12px;border-radius:999px;color:var(--fg);font-size:14px;font-weight:600;min-height:40px;box-sizing:border-box;text-decoration:none;">
+            <span>All Plans</span>
+            {% if plan_filter == 'all' or not plan_filter %}<span style="color:var(--acc);font-size:12px;">✓</span>{% endif %}
+          </a>
+          {% for p in plans %}
+          <a href="/admin/users?q={{ q }}&plan_filter={{ p.name|lower }}" hx-get="/admin/users?q={{ q }}&plan_filter={{ p.name|lower }}" hx-target="#users-table-container" hx-push-url="true" class="lf-row" role="option" style="display:flex;width:100%;justify-content:space-between;align-items:center;padding:10px 12px;border-radius:9px;color:var(--fg);font-size:14px;font-weight:600;min-height:40px;box-sizing:border-box;text-decoration:none;">
+            <span>{{ p.name }}</span>
+            {% if plan_filter == p.name|lower %}<span style="color:var(--acc);font-size:12px;">✓</span>{% endif %}
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+
+    </div>
+
+    <!-- USERS TABLE -->
+    <div style="overflow-x:auto;">
+      <table style="width:100%;min-width:820px;border-collapse:collapse;font-size:14px;">
+        <thead>
+          <tr style="text-align:left;color:var(--mut);font-size:12px;letter-spacing:.04em;border-bottom:1px solid var(--line);">
+            <th style="padding:14px 20px;">USER / ORG</th>
+            <th style="padding:14px 10px;">EMAIL / ROLE</th>
+            <th style="padding:14px 10px;">PLAN</th>
+            <th style="padding:14px 10px;">CREDITS</th>
+            <th style="padding:14px 10px;">STATUS</th>
+            <th style="padding:14px 20px 14px 10px;text-align:right;">ACTIONS</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in users %}
+          {% set memberships = u.memberships if u.memberships else [] %}
+          {% set primary_org = memberships[0].org if memberships else none %}
+          {% set credits = org_credits.get(primary_org.id, 0) if primary_org else 0 %}
+          {% set plan_name = org_plan.get(primary_org.id, 'trial') if primary_org else 'trial' %}
+          <tr class="lf-row" style="border-top:1px solid var(--line);">
+            
+            <!-- User / Org -->
+            <td style="padding:12px 20px;">
+              <div style="display:flex;align-items:center;gap:12px;">
+                <div class="disp" style="width:38px;height:38px;border-radius:10px;background:var(--surf2);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--acc);font-size:16px;">
+                  {{ (u.name or u.email)[0]|upper }}
+                </div>
+                <div>
+                  <div style="font-weight:700;color:var(--fg);">{{ u.name or u.email.split('@')[0] }}</div>
+                  <div style="font-size:12px;color:var(--mut);margin-top:2px;">{{ primary_org.name if primary_org else 'No org' }}</div>
+                </div>
+              </div>
+            </td>
+
+            <!-- Email / Role -->
+            <td style="padding:12px 10px;">
+              <div style="font-weight:600;color:var(--fg);">{{ u.email }}</div>
+              <div style="font-size:12px;color:var(--mut);margin-top:2px;">{{ memberships[0].role|title if memberships else 'Member' }}</div>
+            </td>
+
+            <!-- Plan -->
+            <td style="padding:12px 10px;">
+              {% if primary_org %}
+              <button class="lf-btn lf-ghost" onclick="openChangePlanModal('{{ primary_org.id }}', '{{ primary_org.name }}', '{{ plan_name }}')" title="Change plan" style="padding:6px 12px;border:1px solid var(--line);border-radius:999px;background:var(--surf2);color:var(--fg);font-weight:700;font-size:13px;min-height:36px;">
+                {{ plan_name|capitalize }}
+              </button>
+              {% else %}
+              <span style="font-size:12px;color:var(--mut);">-</span>
+              {% endif %}
+            </td>
+
+            <!-- Credits -->
+            <td class="mono" style="padding:12px 10px;font-weight:600;color:var(--fg);">
+              {{ credits }}
+            </td>
+
+            <!-- Status -->
+            <td style="padding:12px 10px;">
+              <span style="display:inline-flex;align-items:center;gap:7px;padding:6px 12px;border-radius:999px;background:var(--surf2);border:1px solid var(--line);font-size:13px;font-weight:700;color:var(--fg);">
+                <span style="width:8px;height:8px;border-radius:50%;background:{{ 'var(--ok)' if u.is_active else 'var(--bad)' }};"></span>
+                {{ 'Active' if u.is_active else 'Suspended' }}
+              </span>
+            </td>
+
+            <!-- Actions -->
+            <td style="padding:12px 20px 12px 10px;text-align:right;white-space:nowrap;">
+              <div style="display:inline-flex;align-items:center;gap:8px;">
+                {% if primary_org %}
+                <button type="button" class="lf-btn lf-ghost" onclick="openGrantCreditsModal('{{ primary_org.id }}', '{{ primary_org.name }}')" style="padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surf2);color:var(--fg);font-weight:700;font-size:13px;min-height:44px;">
+                  Grant credits
+                </button>
+                {% endif %}
+
+                <form method="post" action="/admin/users/{{ u.id }}/toggle" hx-post="/admin/users/{{ u.id }}/toggle" hx-target="#users-table-container" style="margin:0;">
+                  <button type="submit" class="lf-btn lf-ghost" style="padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:transparent;color:{{ 'var(--bad)' if u.is_active else 'var(--ok)' }};font-weight:700;font-size:13px;min-height:44px;">
+                    {{ 'Suspend' if u.is_active else 'Activate' }}
+                  </button>
+                </form>
+              </div>
+            </td>
+
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="6" style="padding:48px 20px;text-align:center;color:var(--mut);">
+              <div style="font-size:15px;font-weight:600;">No users found</div>
+              <div style="font-size:13px;margin-top:4px;">Try a different search query or clear the filter.</div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- SERVER-SIDE PAGINATION -->
+    <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;padding:16px 20px;border-top:1px solid var(--line);">
+      <div class="mono" style="font-size:13px;color:var(--mut);">
+        {{ range_text }}
+      </div>
+      
+      <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+        <!-- Prev Button -->
+        {% if page > 1 %}
+        <a href="/admin/users?page={{ page - 1 }}&q={{ q }}&plan_filter={{ plan_filter }}"
+           hx-get="/admin/users?page={{ page - 1 }}&q={{ q }}&plan_filter={{ plan_filter }}"
+           hx-target="#users-table-container"
+           hx-push-url="true"
+           class="lf-btn lf-ghost" aria-label="Previous page"
+           style="width:44px;height:44px;border:1px solid var(--line);border-radius:12px;background:var(--surf2);color:var(--fg);display:flex;align-items:center;justify-content:center;text-decoration:none;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
+        </a>
+        {% else %}
+        <span class="lf-btn lf-ghost" aria-disabled="true" style="width:44px;height:44px;border:1px solid var(--line);border-radius:12px;background:var(--surf2);color:var(--mut);opacity:0.4;display:flex;align-items:center;justify-content:center;cursor:not-allowed;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
         </span>
-      </td>
-      <td style="padding:12px 16px;">
-        <form method="post" action="/admin/users/{{ u.id }}/toggle" hx-post="/admin/users/{{ u.id }}/toggle" hx-swap="none" style="display:inline;">
-          <button class="lf-btn lf-ghost" style="padding:6px 10px;border-radius:6px;border:1px solid var(--line);font-size:12px;">{{ 'Suspend' if u.is_active else 'Activate' }}</button>
-        </form>
-      </td>
-    </tr>
-  {% else %}
-    <tr><td colspan="7" style="padding:24px 16px;color:var(--mut);text-align:center;">No users.</td></tr>
-  {% endfor %}
-  </tbody>
-</table>
+        {% endif %}
+
+        <!-- Numeric Page Buttons -->
+        {% for p_num in range(1, total_pages + 1) %}
+          {% if p_num == page %}
+          <span class="lf-btn mono" aria-current="page" style="width:44px;height:44px;border:1px solid var(--acc);border-radius:12px;background:var(--acc);color:var(--accfg);font-weight:700;display:flex;align-items:center;justify-content:center;">
+            {{ p_num }}
+          </span>
+          {% else %}
+          <a href="/admin/users?page={{ p_num }}&q={{ q }}&plan_filter={{ plan_filter }}"
+             hx-get="/admin/users?page={{ p_num }}&q={{ q }}&plan_filter={{ plan_filter }}"
+             hx-target="#users-table-container"
+             hx-push-url="true"
+             class="lf-btn lf-ghost mono" aria-label="Page {{ p_num }}"
+             style="width:44px;height:44px;border:1px solid var(--line);border-radius:12px;background:var(--surf2);color:var(--fg);font-weight:600;display:flex;align-items:center;justify-content:center;text-decoration:none;">
+            {{ p_num }}
+          </a>
+          {% endif %}
+        {% endfor %}
+
+        <!-- Next Button -->
+        {% if page < total_pages %}
+        <a href="/admin/users?page={{ page + 1 }}&q={{ q }}&plan_filter={{ plan_filter }}"
+           hx-get="/admin/users?page={{ page + 1 }}&q={{ q }}&plan_filter={{ plan_filter }}"
+           hx-target="#users-table-container"
+           hx-push-url="true"
+           class="lf-btn lf-ghost" aria-label="Next page"
+           style="width:44px;height:44px;border:1px solid var(--line);border-radius:12px;background:var(--surf2);color:var(--fg);display:flex;align-items:center;justify-content:center;text-decoration:none;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+        </a>
+        {% else %}
+        <span class="lf-btn lf-ghost" aria-disabled="true" style="width:44px;height:44px;border:1px solid var(--line);border-radius:12px;background:var(--surf2);color:var(--mut);opacity:0.4;display:flex;align-items:center;justify-content:center;cursor:not-allowed;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+        </span>
+        {% endif %}
+      </div>
+
+    </div>
+
+  </div>
+
 </div>
 
-<div style="margin-top:24px;display:flex;gap:12px;flex-wrap:wrap;">
-  <form method="post" action="/admin/orgs/{{ 0 }}/credits" style="display:flex;gap:8px;align-items:center;">
-    <label style="font-size:12px;color:var(--mut);">Org ID</label>
-    <input type="number" name="oid" style="width:70px;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--surf);color:var(--fg);">
-    <label style="font-size:12px;color:var(--mut);">Amount</label>
-    <input type="number" name="amount" value="10" style="width:70px;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--surf);color:var(--fg);">
-    <label style="font-size:12px;color:var(--mut);">Reason</label>
-    <input type="text" name="reason" value="manual grant" style="width:140px;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--surf);color:var(--fg);">
-    <button class="lf-btn" style="padding:8px 16px;border-radius:6px;background:var(--acc);color:var(--accfg);border:none;font-size:13px;">Grant credits</button>
-  </form>
+<!-- GRANT CREDITS MODAL -->
+<div id="grant-credits-modal" class="lf-ov" style="display:none;position:fixed;inset:0;z-index:100;background:rgba(8,10,14,.65);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:20px;">
+  <div class="lf-modal" role="dialog" aria-modal="true" aria-labelledby="gc-modal-title" style="width:100%;max-width:440px;padding:28px;border-radius:22px;border:1px solid var(--line);background:var(--surf);box-shadow:var(--shadow-h);" onclick="event.stopPropagation()">
+    
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+      <div>
+        <h3 id="gc-modal-title" style="font-size:22px;margin:0;font-weight:700;color:var(--fg);font-family:Sora;">Grant credits</h3>
+        <p style="margin:8px 0 0;font-size:13px;color:var(--mut);">Org: <b id="gc-org-display" style="color:var(--fg);">Organization</b></p>
+      </div>
+      <button type="button" class="lf-btn lf-ghost" onclick="lfCloseModal('grant-credits-modal')" aria-label="Close dialog" style="width:36px;height:36px;border-radius:10px;border:1px solid var(--line);color:var(--mut);display:flex;align-items:center;justify-content:center;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+      </button>
+    </div>
 
-  <form method="post" action="/admin/orgs/{{ 0 }}/plan" style="display:flex;gap:8px;align-items:center;">
-    <label style="font-size:12px;color:var(--mut);">Org ID</label>
-    <input type="number" name="oid" style="width:70px;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--surf);color:var(--fg);">
-    <select name="plan_code" style="padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--surf);color:var(--fg);font-size:13px;">
-      {% for p in plans %}
-      <option value="{{ p.code }}">{{ p.name }}</option>
-      {% endfor %}
-    </select>
-    <button class="lf-btn" style="padding:8px 16px;border-radius:6px;background:var(--acc);color:var(--accfg);border:none;font-size:13px;">Change plan</button>
-  </form>
+    <form id="gc-form" method="post" action="/admin/orgs/0/credits"
+          hx-post="/admin/orgs/0/credits"
+          hx-target="#users-table-container"
+          hx-select="#users-table-container">
+      <div style="margin-top:20px;">
+        <label for="gc-amount" style="font-size:13px;font-weight:700;color:var(--fg);">Credits to add</label>
+        <input id="gc-amount" class="lf-in mono" type="number" name="amount" value="50" min="1" required
+               style="margin-top:6px;width:100%;box-sizing:border-box;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--fg);font-size:15px;min-height:44px;">
+      </div>
+
+      <div style="margin-top:14px;">
+        <label for="gc-reason" style="font-size:13px;font-weight:700;color:var(--fg);">Reason</label>
+        <input id="gc-reason" class="lf-in" type="text" name="reason" value="manual grant" required
+               style="margin-top:6px;width:100%;box-sizing:border-box;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--fg);font-size:14px;min-height:44px;">
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:24px;">
+        <button type="button" class="lf-btn lf-ghost" onclick="lfCloseModal('grant-credits-modal')" style="padding:10px 18px;border:1px solid var(--line);border-radius:12px;background:var(--surf2);color:var(--fg);font-weight:700;font-size:14px;min-height:44px;">
+          Cancel
+        </button>
+        <button type="submit" class="lf-btn" onclick="lfCloseModal('grant-credits-modal')" style="padding:10px 20px;border:0;border-radius:12px;background:var(--acc);color:var(--accfg);font-weight:700;font-size:14px;min-height:44px;">
+          Grant credits
+        </button>
+      </div>
+    </form>
+
+  </div>
 </div>
+
+<!-- CHANGE PLAN MODAL -->
+<div id="change-plan-modal" class="lf-ov" style="display:none;position:fixed;inset:0;z-index:100;background:rgba(8,10,14,.65);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:20px;">
+  <div class="lf-modal" role="dialog" aria-modal="true" aria-labelledby="cp-modal-title" style="width:100%;max-width:440px;padding:28px;border-radius:22px;border:1px solid var(--line);background:var(--surf);box-shadow:var(--shadow-h);" onclick="event.stopPropagation()">
+    
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+      <div>
+        <h3 id="cp-modal-title" style="font-size:22px;margin:0;font-weight:700;color:var(--fg);font-family:Sora;">Change plan</h3>
+        <p style="margin:8px 0 0;font-size:13px;color:var(--mut);">Org: <b id="cp-org-display" style="color:var(--fg);">Organization</b></p>
+      </div>
+      <button type="button" class="lf-btn lf-ghost" onclick="lfCloseModal('change-plan-modal')" aria-label="Close dialog" style="width:36px;height:36px;border-radius:10px;border:1px solid var(--line);color:var(--mut);display:flex;align-items:center;justify-content:center;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+      </button>
+    </div>
+
+    <form id="cp-form" method="post" action="/admin/orgs/0/plan"
+          hx-post="/admin/orgs/0/plan"
+          hx-target="#users-table-container"
+          hx-select="#users-table-container">
+      <div style="margin-top:20px;">
+        <label for="cp-plan-select" style="font-size:13px;font-weight:700;color:var(--fg);">Subscription plan</label>
+        <select id="cp-plan-select" name="plan_code" class="lf-in" style="margin-top:6px;width:100%;box-sizing:border-box;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--fg);font-size:14px;min-height:44px;">
+          {% for p in plans %}
+          <option value="{{ p.code }}">{{ p.name }} (₹{{ p.price_inr }}/mo — {{ p.monthly_credits }} credits)</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:24px;">
+        <button type="button" class="lf-btn lf-ghost" onclick="lfCloseModal('change-plan-modal')" style="padding:10px 18px;border:1px solid var(--line);border-radius:12px;background:var(--surf2);color:var(--fg);font-weight:700;font-size:14px;min-height:44px;">
+          Cancel
+        </button>
+        <button type="submit" class="lf-btn" onclick="lfCloseModal('change-plan-modal')" style="padding:10px 20px;border:0;border-radius:12px;background:var(--acc);color:var(--accfg);font-weight:700;font-size:14px;min-height:44px;">
+          Update plan
+        </button>
+      </div>
+    </form>
+
+  </div>
+</div>
+
+<script>
+function openGrantCreditsModal(orgId, orgName) {
+  document.getElementById('gc-org-display').textContent = orgName || ('Org #' + orgId);
+  const form = document.getElementById('gc-form');
+  const actionUrl = '/admin/orgs/' + orgId + '/credits';
+  form.action = actionUrl;
+  form.setAttribute('hx-post', actionUrl);
+  htmx.process(form);
+  lfOpenModal('grant-credits-modal');
+}
+
+function openChangePlanModal(orgId, orgName, currentPlan) {
+  document.getElementById('cp-org-display').textContent = orgName || ('Org #' + orgId);
+  const sel = document.getElementById('cp-plan-select');
+  if (sel && currentPlan) {
+    for (let i = 0; i < sel.options.length; i++) {
+      if (sel.options[i].value.toLowerCase() === currentPlan.toLowerCase()) {
+        sel.selectedIndex = i;
+        break;
+      }
+    }
+  }
+  const form = document.getElementById('cp-form');
+  const actionUrl = '/admin/orgs/' + orgId + '/plan';
+  form.action = actionUrl;
+  form.setAttribute('hx-post', actionUrl);
+  htmx.process(form);
+  lfOpenModal('change-plan-modal');
+}
+</script>
 {% endblock %}

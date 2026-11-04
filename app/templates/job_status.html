@@ -1,37 +1,143 @@
-{% extends "layouts/app.html" %}
-{% block title %}Job status — LeadForge{% endblock %}
+{# HTMX Status Polling Fragment for Job #{{ job.id }} #}
+{% set st = job.status|string %}
+{% set is_done = ('done' in st) %}
+{% set is_failed = ('failed' in st) %}
+{% set is_running = ('running' in st) %}
 
-{% block content %}
-<div class="lf-card" style="border:1px solid var(--line);border-radius:12px;padding:20px;">
-  <div style="font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;">Job #{{ job.id }} &mdash; {{ job.status }}</div>
+{# Calculate active step from real job state #}
+{% set summary = job.result_summary or {} %}
+{% set step_num = 1 %}
+{% if is_done %}
+  {% set step_num = 6 %}
+{% elif is_running %}
+  {% if summary.deduplicated is defined and summary.deduplicated > 0 %}
+    {% set step_num = 5 %}
+  {% elif summary.collected is defined and summary.collected > 0 %}
+    {% set step_num = 3 %}
+  {% else %}
+    {% set step_num = 2 %}
+  {% endif %}
+{% elif is_failed %}
+  {% set step_num = 0 %}
+{% else %}
+  {% set step_num = 1 %}
+{% endif %}
 
-  <div style="margin-top:12px;">
-    <div style="font-size:12px;color:var(--fg);margin-bottom:6px;">Progress</div>
-    <div class="progress-wrap">
-      <div class="progress-bar" style="width:{{ (job.result_summary or {}).delivered or 0 }}%"></div>
+<div class="lf-card" style="padding:28px;border:1px solid var(--line);border-radius:22px;background:var(--surf);box-shadow:var(--shadow);box-sizing:border-box;">
+  <!-- Status Header -->
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;border-bottom:1px solid var(--line);padding-bottom:18px;">
+    <div>
+      <div style="font-size:12px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:0.04em;">Job Execution State</div>
+      <div style="font-size:20px;font-weight:700;color:var(--fg);margin-top:2px;">
+        {% if is_done %}
+          Search Complete
+        {% elif is_failed %}
+          Execution Failed
+        {% elif is_running %}
+          Pipeline Running&hellip;
+        {% else %}
+          Queued for Execution
+        {% endif %}
+      </div>
     </div>
-    <div style="font-size:12px;color:var(--mut);margin-top:4px;">{{ (job.result_summary or {}).delivered or 0 }} of {{ (job.result_summary or {}).target_count or 0 }} delivered</div>
+
+    <div>
+      {% if is_done %}
+        <span class="lf-badge"><span class="dot" style="background:var(--ok);"></span><span style="color:var(--fg);font-weight:700;">Complete</span></span>
+      {% elif is_running %}
+        <span class="lf-badge"><span class="dot lf-dot" style="background:var(--acc2);"></span><span style="color:var(--fg);font-weight:700;">Running Step {{ step_num }}/6</span></span>
+      {% elif is_failed %}
+        <span class="lf-badge"><span class="dot" style="background:var(--bad);"></span><span style="color:var(--fg);font-weight:700;">Failed</span></span>
+      {% else %}
+        <span class="lf-badge"><span class="dot" style="background:var(--warn);"></span><span style="color:var(--fg);font-weight:700;">Queued</span></span>
+      {% endif %}
+    </div>
   </div>
 
-  {% if job.result_summary %}
-  <div style="margin-top:16px;display:flex;gap:12px;flex-wrap:wrap;">
-    <div class="stat-card" style="padding:12px 16px;">
-      <div class="label">Collected</div>
-      <div class="value">{{ job.result_summary.collected or 0 }}</div>
+  <!-- 6-STEP PROGRESS BAR (Planning, Searching, Merging, Enriching, Scoring, Complete) -->
+  {% set step_names = ['Planning', 'Searching', 'Merging', 'Enriching', 'Scoring', 'Complete'] %}
+  <div style="margin-top:28px;">
+    <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;position:relative;">
+      {% for s in step_names %}
+      {% set idx = loop.index %}
+      {% set done_step = (idx < step_num or is_done) %}
+      {% set active_step = (idx == step_num and not is_done and not is_failed) %}
+      <div style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;">
+        <!-- Circle Indicator -->
+        <div style="width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;
+          background:{{ 'var(--ok)' if done_step else 'var(--acc)' if active_step else 'var(--surf2)' }};
+          color:{{ 'var(--okfg)' if done_step else 'var(--accfg)' if active_step else 'var(--mut)' }};
+          border:2px solid {{ 'var(--ok)' if done_step else 'var(--acc)' if active_step else 'var(--line)' }};
+          box-shadow:{{ '0 0 0 4px rgba(200,67,26,0.18)' if active_step else 'none' }};">
+          {% if done_step %}
+            &#10003;
+          {% else %}
+            {{ idx }}
+          {% endif %}
+        </div>
+        <!-- Step Label -->
+        <span style="font-size:12px;font-weight:{{ '700' if active_step else '600' }};color:{{ 'var(--fg)' if active_step or done_step else 'var(--mut)' }};">
+          {{ s }}
+        </span>
+      </div>
+      {% endfor %}
     </div>
-    <div class="stat-card" style="padding:12px 16px;">
-      <div class="label">Deduplicated</div>
-      <div class="value">{{ job.result_summary.deduplicated or 0 }}</div>
+
+    <!-- Animated / Completed Progress Strip -->
+    <div style="margin-top:20px;height:10px;border-radius:8px;background:var(--surf2);overflow:hidden;">
+      {% if is_done %}
+      <div style="width:100%;height:100%;background:var(--ok);border-radius:8px;transition:width 0.6s ease;"></div>
+      {% elif is_failed %}
+      <div style="width:{{ (step_num / 6 * 100)|round }}%;height:100%;background:var(--bad);border-radius:8px;"></div>
+      {% else %}
+      <div class="lf-prog" style="width:{{ [((step_num / 6) * 100)|round, 95]|min }}%;height:100%;border-radius:8px;transition:width 0.8s ease;"></div>
+      {% endif %}
     </div>
-    <div class="stat-card" style="padding:12px 16px;">
-      <div class="label">Credits used</div>
-      <div class="value">{{ job.result_summary.credits_used or 0 }}</div>
+  </div>
+
+  <!-- Real Metrics Summary Grid -->
+  <div style="margin-top:28px;display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;">
+    <div style="padding:14px 16px;border-radius:14px;background:var(--surf2);border:1px solid var(--line);">
+      <div style="font-size:12px;color:var(--mut);font-weight:600;">Target leads</div>
+      <div class="mono" style="font-size:22px;font-weight:700;color:var(--fg);margin-top:4px;">{{ summary.target_count or 10 }}</div>
     </div>
+    <div style="padding:14px 16px;border-radius:14px;background:var(--surf2);border:1px solid var(--line);">
+      <div style="font-size:12px;color:var(--mut);font-weight:600;">Sources collected</div>
+      <div class="mono" style="font-size:22px;font-weight:700;color:var(--fg);margin-top:4px;">{{ summary.collected or 0 }}</div>
+    </div>
+    <div style="padding:14px 16px;border-radius:14px;background:var(--surf2);border:1px solid var(--line);">
+      <div style="font-size:12px;color:var(--mut);font-weight:600;">After deduplication</div>
+      <div class="mono" style="font-size:22px;font-weight:700;color:var(--fg);margin-top:4px;">{{ summary.deduplicated or 0 }}</div>
+    </div>
+    <div style="padding:14px 16px;border-radius:14px;background:var(--surf2);border:1px solid var(--line);">
+      <div style="font-size:12px;color:var(--mut);font-weight:600;">Credits delivered</div>
+      <div class="mono" style="font-size:22px;font-weight:700;color:var(--ok if is_done else 'var(--fg)');margin-top:4px;">{{ summary.credits_used or (summary.target_count if is_done else 0) }}</div>
+    </div>
+  </div>
+
+  <!-- Error display if failed -->
+  {% if is_failed and job.error %}
+  <div style="margin-top:20px;padding:16px;border-radius:14px;background:rgba(180,35,24,0.08);border:1px solid var(--bad);color:var(--bad);font-size:14px;">
+    <div style="font-weight:700;">Job Error:</div>
+    <div style="margin-top:4px;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.5;">{{ job.error }}</div>
+    <div style="margin-top:8px;font-size:12px;color:var(--mut);">All reserved credits were automatically refunded to your organization balance.</div>
   </div>
   {% endif %}
 
-  {% if job.error %}
-  <div style="color:var(--bad);font-size:13px;margin-top:12px;">{{ job.error }}</div>
+  <!-- Completion Actions -->
+  {% if is_done %}
+  <div style="margin-top:24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;padding-top:20px;border-top:1px solid var(--line);">
+    <div style="display:flex;align-items:center;gap:8px;color:var(--ok);font-size:14px;font-weight:700;">
+      <span>&#10003; All leads deduplicated, enriched and scored.</span>
+    </div>
+    <a href="/leads" class="lf-btn" style="padding:12px 24px;border:0;border-radius:12px;background:var(--acc);color:var(--accfg);font-weight:700;font-size:14px;min-height:44px;text-decoration:none;">
+      View delivered leads &rarr;
+    </a>
+  </div>
   {% endif %}
 </div>
-{% endblock %}
+
+{# If done or failed, stop HTMX polling by not providing any trigger #}
+{% if not is_done and not is_failed %}
+<div hx-get="/jobs/{{ job.id }}/status" hx-trigger="every 2s" hx-target="#job-status-container" hx-swap="innerHTML"></div>
+{% endif %}

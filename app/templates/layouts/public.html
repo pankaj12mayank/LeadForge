@@ -1,6 +1,7 @@
 {% extends "base.html" %}
+
 {% block body %}
-<div class="lf" style="box-sizing:border-box;position:relative;overflow:hidden">
+<div class="lf" style="box-sizing:border-box;position:relative;min-height:100vh;display:flex;flex-direction:column;">
   {% block content %}{% endblock %}
 </div>
 {% endblock %}

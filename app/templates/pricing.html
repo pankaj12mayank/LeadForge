@@ -2,32 +2,89 @@
 {% block title %}Pricing — LeadForge{% endblock %}
 
 {% block content %}
-<section style="padding:64px 20px;max-width:1000px;margin:0 auto;">
-  <h2 class="disp" style="font-size:40px;margin:0 0 12px;text-align:center;">Simple, per-organization pricing</h2>
-  <p style="font-size:16px;color:var(--mut);text-align:center;margin:0 0 40px;">Credits reset monthly. 1 credit per lead delivered.</p>
+<!-- Simple Nav -->
+<nav style="border-bottom:1px solid var(--line);background:var(--surf);">
+  <div style="max-width:1200px;margin:0 auto;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;">
+    <a href="/" style="display:flex;align-items:center;gap:12px;text-decoration:none;" aria-label="LeadForge home">
+      <svg width="34" height="34" viewBox="0 0 40 40" aria-hidden="true">
+        <rect width="40" height="40" rx="10" fill="var(--acc)"></rect>
+        <path d="M8 10h24v6H8z" fill="var(--accfg)"></path>
+        <path d="M11 18h18l-5 8v3h-8v-3z" fill="var(--accfg)"></path>
+        <rect x="12" y="31" width="16" height="3" rx="1.5" fill="var(--accfg)"></rect>
+      </svg>
+      <span class="disp" style="font-weight:700;font-size:20px;color:var(--fg);">LeadForge</span>
+    </a>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <button class="lf-btn lf-ghost" onclick="lfToggleTheme()" aria-label="Toggle light and dark theme" style="width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--surf);color:var(--fg);display:flex;align-items:center;justify-content:center;">
+        <svg class="lf-theme-icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="display:none;"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+        <svg class="lf-theme-icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg>
+      </button>
+      <a href="/auth/login" class="lf-btn lf-ghost" style="padding:11px 18px;border-radius:12px;border:1px solid var(--line);background:var(--surf2);color:var(--fg);font-weight:700;font-size:14px;min-height:44px;text-decoration:none;">Sign in</a>
+      <a href="/auth/signup" class="lf-btn" style="padding:11px 18px;border-radius:12px;border:0;background:var(--acc);color:var(--accfg);font-weight:700;font-size:14px;min-height:44px;text-decoration:none;">Start free trial</a>
+    </div>
+  </div>
+</nav>
 
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;">
+<section style="padding:72px 24px 96px;max-width:1000px;margin:0 auto;flex:1 0 auto;width:100%;box-sizing:border-box;">
+  <div style="text-align:center;max-width:600px;margin:0 auto;">
+    <div class="mono" style="font-size:13px;color:var(--acc);font-weight:600;letter-spacing:0.04em;">PLANS &amp; PRICING</div>
+    <h1 style="font-size:clamp(30px, 4vw, 44px);margin:12px 0 0;font-weight:700;color:var(--fg);letter-spacing:-0.03em;">Simple, per-organization pricing</h1>
+    <p style="font-size:16px;color:var(--mut);margin:14px 0 0;line-height:1.6;">Credits reset monthly. 1 credit per lead delivered. Unused credits refunded on each job.</p>
+  </div>
+
+  <div style="margin-top:56px;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px;">
     {% for plan in plans %}
-    <div class="lf-card" style="border:1px solid var(--line);border-radius:16px;padding:28px;text-align:left;{{ 'border-color:var(--acc);box-shadow:var(--shadow-h)' if loop.last else '' }}">
-      <h3 style="font-size:18px;margin:0 0 6px;font-family:Sora;">{{ plan.name }}</h3>
-      <div style="font-size:30px;font-family:'JetBrains Mono',monospace;font-weight:700;margin:6px 0 14px;">&#8377;{{ plan.price_inr }}</div>
-      <div style="font-size:13px;color:var(--mut);margin:0 0 16px;">{{ plan.monthly_credits }} credits/month &bull; {{ plan.seats }} seat{% if plan.seats != 1 %}s{% endif %}</div>
-      <ul style="font-size:13px;color:var(--mut);margin:0;padding-left:16px;list-style:none;">
-        {% for key, val in (plan.features or {}).items() %}
-        {% if val %}
-        <li style="margin:4px 0;">&#10003; {{ key.replace('_',' ') | title }}</li>
-        {% endif %}
-        {% endfor %}
-      </ul>
-      <div style="margin-top:20px;">
-        <a href="/auth/signup" class="lf-btn" style="width:100%;{% if not loop.last %}border:1px solid var(--line);background:transparent;color:var(--fg);{% endif %}">{{ 'Get started' if not loop.last else 'Start Pro trial' }}</a>
+    {% set is_pro = (plan.code == 'pro') %}
+    <div class="lf-card" style="border:1px solid {{ 'var(--acc)' if is_pro else 'var(--line)' }};border-radius:24px;padding:36px;background:var(--surf);box-shadow:{{ 'var(--shadow-h)' if is_pro else 'var(--shadow)' }};display:flex;flex-direction:column;justify-content:space-between;gap:24px;position:relative;">
+      {% if is_pro %}
+      <span style="position:absolute;top:18px;right:18px;padding:4px 10px;border-radius:999px;background:var(--acc);color:var(--accfg);font-size:12px;font-weight:700;">RECOMMENDED</span>
+      {% endif %}
+
+      <div>
+        <h3 style="font-size:22px;margin:0;font-weight:700;color:var(--fg);">{{ plan.name }}</h3>
+        <div style="display:flex;align-items:baseline;gap:6px;margin-top:14px;">
+          <span class="disp" style="font-size:40px;font-weight:700;color:var(--fg);">&#8377;{{ plan.price_inr }}</span>
+          <span style="font-size:14px;color:var(--mut);">/ month</span>
+        </div>
+
+        <div style="margin-top:20px;padding:12px 16px;border-radius:12px;background:var(--surf2);border:1px solid var(--line);font-size:13px;font-weight:700;color:var(--fg);">
+          <span class="mono">{{ plan.monthly_credits }}</span> credits / month &bull; <span class="mono">{{ plan.seats }}</span> seat{{ 's' if plan.seats != 1 else '' }}
+        </div>
+
+        <ul style="margin:24px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:12px;font-size:14px;color:var(--mut);">
+          {% for key, val in (plan.features or {}).items() %}
+          {% if val %}
+          <li style="display:flex;align-items:center;gap:10px;">
+            <span style="color:var(--ok);font-weight:700;">&#10003;</span>
+            <span>{{ key.replace('_',' ') | title }}</span>
+          </li>
+          {% endif %}
+          {% endfor %}
+        </ul>
+      </div>
+
+      <div>
+        <a href="/auth/signup?plan={{ plan.code }}" class="lf-btn {{ '' if is_pro else 'lf-ghost' }}"
+           style="width:100%;padding:14px;border-radius:12px;font-weight:700;font-size:15px;min-height:44px;text-align:center;text-decoration:none;
+           background:{{ 'var(--acc)' if is_pro else 'var(--surf2)' }};color:{{ 'var(--accfg)' if is_pro else 'var(--fg)' }};border:{{ '0' if is_pro else '1px solid var(--line)' }};">
+          {{ 'Start Pro trial' if is_pro else 'Get started' }}
+        </a>
       </div>
     </div>
     {% endfor %}
   </div>
 
-  <div style="margin-top:40px;text-align:center;">
-    <p style="font-size:12px;color:var(--mut);">Need custom credits or higher seat limits? <a href="/auth/signup" class="lf-link" style="text-decoration:underline;">Contact us</a>.</p>
+  <div style="margin-top:48px;text-align:center;padding:24px;border-radius:16px;border:1px solid var(--line);background:var(--surf2);">
+    <p style="font-size:14px;color:var(--fg);margin:0;font-weight:600;">
+      All plans include full data export, automatic deduplication against your team leads, and email verification.
+    </p>
   </div>
 </section>
+
+<!-- Footer -->
+<footer style="padding:32px 24px;border-top:1px solid var(--line);text-align:center;font-size:13px;color:var(--mut);">
+  <a href="/privacy" class="lf-link">Privacy</a> &bull;
+  <a href="/terms" class="lf-link">Terms</a> &bull;
+  <a href="/admin" class="lf-link">Admin</a>
+</footer>
 {% endblock %}
