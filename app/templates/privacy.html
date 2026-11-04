@@ -1,9 +1,17 @@
-{% extends "base.html" %}
-{% block body %}
-<div class="max-w-3xl mx-auto px-4 py-8">
-  <h1 class="text-2xl font-bold mb-6">Privacy Policy</h1>
-  <p class="text-slate-600 mb-4">LeadForge processes leads from licensed third-party data providers (Apollo, Hunter, Skrapp, Tavily/Serper, Google Places) and from your own searches.</p>
-  <p class="text-slate-600 mb-4">We do not sell your data. Organization data is isolated by org_id. Credits, subscriptions, and leads belong to your organization.</p>
-  <p class="text-slate-600">Contact: privacy@leadforge.local</p>
-</div>
+{% extends "layouts/public.html" %}
+{% block title %}Privacy — LeadForge{% endblock %}
+
+{% block content %}
+<section style="padding:64px 20px;max-width:700px;margin:0 auto;">
+  <h1 class="disp" style="font-size:36px;margin:0 0 20px;font-family:Sora;">Privacy Policy</h1>
+  <p style="font-size:15px;color:var(--mut);line-height:1.6;margin:0 0 16px;">
+    LeadForge processes leads from licensed third-party data providers (Apollo, Hunter, Skrapp, Tavily/Serper, Google Places)
+    and from your own searches. We do not sell your data.
+  </p>
+  <p style="font-size:15px;color:var(--mut);line-height:1.6;margin:0 0 16px;">
+    Organization data is isolated by org_id. Credits, subscriptions, and leads belong to your organization. All secrets
+    come from environment variables only &mdash; nothing is logged or hardcoded.
+  </p>
+  <p style="font-size:15px;color:var(--mut);margin:0;">Contact: privacy@leadforge.local</p>
+</section>
 {% endblock %}

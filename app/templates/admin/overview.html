@@ -1,0 +1,33 @@
+{% extends "layouts/admin.html" %}
+{% set active_page = 'overview' %}
+{% block title %}Admin Overview — LeadForge{% endblock %}
+
+{% block content %}
+<h2 class="disp" style="font-size:30px;margin:0 0 20px;font-family:Sora;">Admin overview</h2>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px;">
+  {{ stat_card("Users", users, None, None) }}
+  {{ stat_card("Organizations", orgs, None, None) }}
+  {{ stat_card("Jobs today", jobs_today, None, None) }}
+  {{ stat_card("MRR/month", ("&#8377;" ~ mrr) if mrr else "&#8377;0", None, None) }}
+  {{ stat_card("Failure rate", (failure_rate ~ "%") if failure_rate else "0%", None, None) }}
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;">
+  <div class="lf-card" style="border:1px solid var(--line);border-radius:12px;padding:20px;">
+    <h3 style="font-size:14px;margin:0 0 12px;font-family:Sora;color:var(--fg);">Quick actions</h3>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <a href="/admin/users" class="lf-btn lf-ghost" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid var(--line);text-align:left;">Manage users &amp; orgs</a>
+      <a href="/admin/jobs" class="lf-btn lf-ghost" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid var(--line);text-align:left;">Jobs monitor</a>
+      <a href="/admin/plans" class="lf-btn lf-ghost" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid var(--line);text-align:left;">Edit plans</a>
+      <a href="/admin/providers" class="lf-btn lf-ghost" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid var(--line);text-align:left;">Provider health</a>
+      <a href="/admin/audit" class="lf-btn lf-ghost" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid var(--line);text-align:left;">Audit log</a>
+    </div>
+  </div>
+  <div class="lf-card" style="border:1px solid var(--line);border-radius:12px;padding:20px;">
+    <h3 style="font-size:14px;margin:0 0 12px;font-family:Sora;color:var(--fg);">Notes</h3>
+    <p style="font-size:13px;color:var(--mut);margin:0 0 8px;">Plan edits apply to new subscription periods.</p>
+    <p style="font-size:13px;color:var(--mut);margin:0;">Credits grant immediately to the org ledger.</p>
+  </div>
+</div>
+{% endblock %}

@@ -1,34 +1,33 @@
-{% extends "base.html" %}
-{% block body %}
-<div class="max-w-5xl mx-auto px-4">
-  <h1 class="text-3xl font-bold mb-2 text-center">Pricing</h1>
-  <p class="text-slate-600 text-center mb-10">Simple per-organization plans. Credits reset monthly.</p>
+{% extends "layouts/public.html" %}
+{% block title %}Pricing — LeadForge{% endblock %}
 
-  <div class="grid md:grid-cols-2 gap-8">
+{% block content %}
+<section style="padding:64px 20px;max-width:1000px;margin:0 auto;">
+  <h2 class="disp" style="font-size:40px;margin:0 0 12px;text-align:center;">Simple, per-organization pricing</h2>
+  <p style="font-size:16px;color:var(--mut);text-align:center;margin:0 0 40px;">Credits reset monthly. 1 credit per lead delivered.</p>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;">
     {% for plan in plans %}
-    <div class="border rounded-2xl p-6 {% if loop.last %}bg-blue-50 ring-2 ring-blue-600{% else %}bg-white{% endif %} {{ 'shadow-lg' if loop.last else '' }}">
-      <h3 class="text-xl font-semibold">{{ plan.name }}</h3>
-      <div class="text-3xl font-bold mb-4">₹{{ plan.price_inr }}<span class="text-lg font-normal text-slate-500">/mo</span></div>
-      <p class="text-slate-600 text-sm mb-6">{{ plan.monthly_credits }} credits/month · {{ plan.seats }} seat{{ 's' if plan.seats != 1 else '' }}</p>
-      <ul class="text-sm text-slate-600 space-y-2 mb-6">
-        {% for k, v in (plan.features or {}).items() %}
-          {% if v %}
-        <li class="flex items-start gap-2"><span class="text-green-600">✓</span> {{ k.replace('_',' ') | title }}</li>
+    <div class="lf-card" style="border:1px solid var(--line);border-radius:16px;padding:28px;text-align:left;{{ 'border-color:var(--acc);box-shadow:var(--shadow-h)' if loop.last else '' }}">
+      <h3 style="font-size:18px;margin:0 0 6px;font-family:Sora;">{{ plan.name }}</h3>
+      <div style="font-size:30px;font-family:'JetBrains Mono',monospace;font-weight:700;margin:6px 0 14px;">&#8377;{{ plan.price_inr }}</div>
+      <div style="font-size:13px;color:var(--mut);margin:0 0 16px;">{{ plan.monthly_credits }} credits/month &bull; {{ plan.seats }} seat{% if plan.seats != 1 %}s{% endif %}</div>
+      <ul style="font-size:13px;color:var(--mut);margin:0;padding-left:16px;list-style:none;">
+        {% for key, val in (plan.features or {}).items() %}
+        {% if val %}
+        <li style="margin:4px 0;">&#10003; {{ key.replace('_',' ') | title }}</li>
         {% endif %}
         {% endfor %}
       </ul>
-      {% if loop.last %}
-        <a href="/auth/signup" class="w-full py-3 bg-blue-600 text-white rounded font-semibold">Start Pro trial</a>
-        <p class="text-xs text-slate-500 mt-3">Starter plan: 50 credits/mo, 1 seat.</p>
-      {% else %}
-        <a href="/auth/signup" class="w-full py-3 border border-slate-300 text-slate-700 rounded font-semibold">Get started</a>
-      {% endif %}
+      <div style="margin-top:20px;">
+        <a href="/auth/signup" class="lf-btn" style="width:100%;{% if not loop.last %}border:1px solid var(--line);background:transparent;color:var(--fg);{% endif %}">{{ 'Get started' if not loop.last else 'Start Pro trial' }}</a>
+      </div>
     </div>
     {% endfor %}
   </div>
 
-  <div class="mt-12 text-center text-sm text-slate-500">
-    Need custom credits or higher seat limits? <a href="/auth/signup" class="underline">Contact us</a>.
+  <div style="margin-top:40px;text-align:center;">
+    <p style="font-size:12px;color:var(--mut);">Need custom credits or higher seat limits? <a href="/auth/signup" class="lf-link" style="text-decoration:underline;">Contact us</a>.</p>
   </div>
-</div>
+</section>
 {% endblock %}

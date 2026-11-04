@@ -33,11 +33,11 @@ router = APIRouter()
 SESSION_NAME = "session"
 
 
-def _render(request: Request, template: str, status_code: int = 200, **ctx) -> HTMLResponse:
+def _render(request: Request, template: str, status_code: int = 200, user=None, **ctx) -> HTMLResponse:
     from app.main import templates
 
     ctx.setdefault("request", request)
-    ctx.setdefault("user", current_user(request))
+    ctx.setdefault("user", user)
     return HTMLResponse(
         templates.get_template(template).render(**ctx), status_code=status_code
     )

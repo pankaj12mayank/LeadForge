@@ -1,17 +1,32 @@
-{% extends "base.html" %}
-{% block body %}
-<div class="max-w-lg mt-6">
-  <h1 class="text-2xl font-bold mb-2">Job #{{ job.id }}</h1>
-  <div class="mb-4">
-    <div class="text-sm text-slate-500">Query</div>
-    <div class="font-medium">{{ job.search.query if job.search else '' }}</div>
-    <div class="text-sm text-slate-500 mt-1">Target: {{ (job.result_summary or {}).target_count or '-' }}</div>
+{% extends "layouts/app.html" %}
+{% set active_page = 'jobs' %}
+{% block title %}Job #{{ job.id }} — LeadForge{% endblock %}
+
+{% block content %}
+<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+  <div>
+    <h2 class="disp" style="font-size:26px;margin:0 0 4px;font-family:Sora;">Job #{{ job.id }}</h2>
+    <p style="color:var(--mut);font-size:13px;margin:0;">Query: <span style="font-family:'JetBrains Mono',monospace;">{{ job.search.query if job.search else 'n/a' }}</span></p>
   </div>
-  <div id="status" hx-get="/jobs/{{ job.id }}/status" hx-trigger="every 2s" hx-swap="innerHTML">
-    <div class="p-4 bg-slate-100 rounded">Loading status...</div>
+  <div class="lf-card" style="border:1px solid var(--line);border-radius:10px;padding:12px 16px;min-width:160px;text-align:right;">
+    <div style="font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.05em;">Target</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:var(--fg);">{{ (job.result_summary or {}).target_count or '-' }}</div>
   </div>
-  <div class="mt-4">
-    <a href="/leads" class="px-3 py-2 text-blue-600 hover:underline">View all leads</a>
+</div>
+
+<div id="job-status" hx-get="/jobs/{{ job.id }}/status" hx-trigger="every 2s" hx-swap="innerHTML">
+  <div class="lf-card" style="border:1px solid var(--line);border-radius:12px;padding:20px;">
+    <div style="font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;">Status</div>
+    <div style="font-size:13px;font-family:'JetBrains Mono',monospace;color:var(--fg);">{{ job.status }}</div>
+    {% if job.error %}
+    <div style="color:var(--bad);font-size:13px;margin-top:8px;">{{ job.error }}</div>
+    {% endif %}
   </div>
+</div>
+
+<div id="job-progress" hx-get="/jobs/{{ job.id }}/status" hx-trigger="every 2s" hx-swap="innerHTML" style="margin-top:16px;"></div>
+
+<div style="margin-top:24px;">
+  <a href="/leads" class="lf-btn" style="padding:12px 24px;border-radius:10px;background:var(--acc);color:var(--accfg);border:none;">View all leads</a>
 </div>
 {% endblock %}

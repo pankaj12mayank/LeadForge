@@ -1,58 +1,99 @@
-{% extends "base.html" %}
-{% block body %}
-<h1 class="text-2xl font-bold mb-4">Leads</h1>
-<div class="flex flex-wrap gap-4 mb-6 items-end">
-  <form method="get" action="/leads" class="flex gap-2">
-    <input name="q" value="{{ q }}" placeholder="Search name/company/email" class="border rounded px-3 py-2">
-    <select name="tier" class="border rounded px-3 py-2">
-      <option value="">All tiers</option><option value="hot" {{ 'selected' if tier=='hot' }}>Hot</option><option value="warm" {{ 'selected' if tier=='warm' }}>Warm</option><option value="cold" {{ 'selected' if tier=='cold' }}>Cold</option>
+{% extends "layouts/app.html" %}
+{% set active_page = 'leads' %}
+{% block title %}Leads — LeadForge{% endblock %}
+
+{% block content %}
+<h2 class="disp" style="font-size:30px;margin:0 0 12px;font-family:Sora;">Leads</h2>
+
+<div style="display:flex;gap:12px;align-items:center;margin-bottom:16px;flex-wrap:wrap;">
+  <form hx-get="/leads" hx-target="#leads-table" hx-push-url="true" style="display:flex;gap:8px;flex:1;min-width:260px;">
+    <input type="hidden" name="q" value="{{ q }}">
+    <input type="hidden" name="tier" value="{{ tier }}">
+    <input type="hidden" name="status" value="{{ status }}">
+    <input type="hidden" name="sort" value="{{ sort }}">
+    <input type="text" name="q" placeholder="Search name, company, email…"
+      style="flex:1;padding:10px 14px;border:1px solid var(--line);border-radius:10px;background:var(--surf);color:var(--fg);font-size:14px;">
+    <select name="tier" onchange="this.form.requestSubmit()"
+      style="padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surf);color:var(--fg);font-size:13px;">
+      <option value="" {% if not tier %}selected{% endif %}>All tiers</option>
+      <option value="hot" {% if tier=='hot' %}selected{% endif %}>Hot</option>
+      <option value="warm" {% if tier=='warm' %}selected{% endif %}>Warm</option>
+      <option value="cold" {% if tier=='cold' %}selected{% endif %}>Cold</option>
     </select>
-    <select name="status" class="border rounded px-3 py-2">
-      <option value="">All statuses</option><option value="new" {{ 'selected' if status=='new' }}>New</option><option value="contacted" {{ 'selected' if status=='contacted' }}>Contacted</option><option value="replied" {{ 'selected' if status=='replied' }}>Replied</option><option value="won" {{ 'selected' if status=='won' }}>Won</option><option value="lost" {{ 'selected' if status=='lost' }}>Lost</option>
+    <select name="status" onchange="this.form.requestSubmit()"
+      style="padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surf);color:var(--fg);font-size:13px;">
+      <option value="" {% if not status %}selected{% endif %}>All statuses</option>
+      <option value="new" {% if status=='new' %}selected{% endif %}>New</option>
+      <option value="contacted" {% if status=='contacted' %}selected{% endif %}>Contacted</option>
+      <option value="replied" {% if status=='replied' %}selected{% endif %}>Replied</option>
+      <option value="won" {% if status=='won' %}selected{% endif %}>Won</option>
+      <option value="lost" {% if status=='lost' %}selected{% endif %}>Lost</option>
     </select>
-    <button class="bg-blue-600 text-white px-4 py-2 rounded">Filter</button>
-    <a href="/leads" class="px-4 py-2 border rounded text-slate-700">Clear</a>
   </form>
-  <div class="ml-auto flex gap-2">
-    <a href="/leads/export?fmt=xlsx" class="bg-blue-600 text-white px-4 py-2 rounded">Export XLSX</a>
-    <a href="/leads/export?fmt=csv" class="bg-slate-700 text-white px-4 py-2 rounded">Export CSV</a>
+  <div style="display:flex;gap:8px;">
+    <a href="/leads/export?fmt=xlsx" class="lf-btn" style="padding:10px 16px;border-radius:10px;background:var(--acc);color:var(--accfg);border:none;font-size:13px;">Export XLSX</a>
+    <a href="/leads/export?fmt=csv" class="lf-btn lf-ghost" style="padding:10px 16px;border-radius:10px;border:1px solid var(--line);font-size:13px;">Export CSV</a>
   </div>
 </div>
 
-<form method="post" action="/leads/bulk" class="mb-4">
-  <div class="bg-white p-4 rounded shadow border overflow-x-auto">
-    <table class="w-full text-left text-sm">
-      <thead class="bg-slate-50">
-        <tr>
-          <th class="px-4 py-2"><input type="checkbox" id="all"></th>
-          <th class="px-4 py-2">Name</th><th class="px-4 py-2">Title</th><th class="px-4 py-2">Company</th>
-          <th class="px-4 py-2">Email</th><th class="px-4 py-2">Source</th><th class="px-4 py-2">Score</th><th class="px-4 py-2">Tier</th><th class="px-4 py-2">Status</th>
+<form method="post" action="/leads/bulk" hx-post="/leads/bulk" hx-target="#leads-table" hx-swap="innerHTML">
+  <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+  <input type="hidden" name="q" value="{{ q }}">
+  <input type="hidden" name="tier" value="{{ tier }}">
+  <input type="hidden" name="status" value="{{ status }}">
+  <input type="hidden" name="sort" value="{{ sort }}">
+
+  <div id="leads-table" style="border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surf);">
+    <table style="width:100%;border-collapse:collapse;">
+      <thead>
+        <tr style="background:var(--surf2);">
+          <th style="padding:10px 14px;border-bottom:1px solid var(--line);font-size:11px;font-weight:600;color:var(--mut);width:32px;"><input type="checkbox" id="select-all" aria-label="Select all"></th>
+          <th style="padding:10px 14px;border-bottom:1px solid var(--line);font-size:11px;font-weight:600;color:var(--mut);text-align:left;">Name</th>
+          <th style="padding:10px 14px;border-bottom:1px solid var(--line);font-size:11px;font-weight:600;color:var(--mut);text-align:left;">Title</th>
+          <th style="padding:10px 14px;border-bottom:1px solid var(--line);font-size:11px;font-weight:600;color:var(--mut);text-align:left;">Company</th>
+          <th style="padding:10px 14px;border-bottom:1px solid var(--line);font-size:11px;font-weight:600;color:var(--mut);text-align:left;">Email</th>
+          <th style="padding:10px 14px;border-bottom:1px solid var(--line);font-size:11px;font-weight:600;color:var(--mut);text-align:left;">Source</th>
+          <th style="padding:10px 14px;border-bottom:1px solid var(--line);font-size:11px;font-weight:600;color:var(--mut);text-align:right;">Score</th>
+          <th style="padding:10px 14px;border-bottom:1px solid var(--line);font-size:11px;font-weight:600;color:var(--mut);text-align:left;">Tier</th>
+          <th style="padding:10px 14px;border-bottom:1px solid var(--line);font-size:11px;font-weight:600;color:var(--mut);text-align:left;">Status</th>
         </tr>
       </thead>
-      <tbody>
-        {% for l in leads %}
-        <tr class="border-b">
-          <td class="px-4 py-2"><input type="checkbox" name="ids" value="{{ l.id }}"></td>
-          <td class="px-4 py-2">{{ l.name }}</td>
-          <td class="px-4 py-2">{{ l.title or '-' }}</td>
-          <td class="px-4 py-2">{{ l.company or '-' }}</td>
-          <td class="px-4 py-2">{{ l.email or '-' }}</td>
-          <td class="px-4 py-2">{{ l.source or '-' }}</td>
-          <td class="px-4 py-2">{{ l.score or '-' }}</td>
-          <td class="px-4 py-2">{{ l.tier or '-' }}</td>
-          <td class="px-4 py-2">{{ l.status }}</td>
+      <tbody id="leads-body">
+      {% for l in leads %}
+        <tr style="border-bottom:1px solid var(--line);">
+          <td style="padding:10px 14px;"><input type="checkbox" name="ids" value="{{ l.id }}"></td>
+          <td style="padding:10px 14px;font-size:13px;color:var(--fg);font-weight:600;">{{ l.name }}</td>
+          <td style="padding:10px 14px;font-size:13px;color:var(--fg);">{{ l.title or '-' }}</td>
+          <td style="padding:10px 14px;font-size:13px;color:var(--fg);">{{ l.company or '-' }}</td>
+          <td style="padding:10px 14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--fg);">{{ l.email or '-' }}</td>
+          <td style="padding:10px 14px;font-size:12px;color:var(--mut);">{{ l.source or '-' }}</td>
+          <td style="padding:10px 14px;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;text-align:right;color:var(--fg);">{{ l.score if l.score is not none else '-' }}</td>
+          <td style="padding:10px 14px;font-size:12px;">
+            <span class="badge {{ 'ok' if l.tier=='hot' else 'warn' if l.tier=='warm' else '' }}">{{ l.tier or '-' }}</span>
+          </td>
+          <td style="padding:10px 14px;font-size:12px;color:var(--fg);">{{ l.status }}</td>
         </tr>
-        {% else %}
-        <tr><td class="px-4 py-4 text-slate-500" colspan="9">No leads.</td></tr>
-        {% endfor %}
+      {% else %}
+        <tr><td colspan="9" style="padding:24px 16px;color:var(--mut);text-align:center;">No leads yet. Create a search to get started.</td></tr>
+      {% endfor %}
       </tbody>
     </table>
   </div>
-  <div class="flex gap-2 mt-3">
-    <select name="status" class="border rounded px-3 py-2">
-      <option value="contacted">Mark contacted</option><option value="replied">Mark replied</option><option value="won">Mark won</option><option value="lost">Mark lost</option>
+
+  <div style="margin-top:14px;display:flex;gap:8px;align-items:center;">
+    <select name="status" style="padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surf);color:var(--fg);font-size:13px;">
+      <option value="contacted">Mark contacted</option>
+      <option value="replied">Mark replied</option>
+      <option value="won">Mark won</option>
+      <option value="lost">Mark lost</option>
     </select>
-    <button class="bg-blue-600 text-white px-4 py-2 rounded">Apply to selected</button>
+    <button class="lf-btn" style="padding:8px 16px;border-radius:8px;background:var(--acc);color:var(--accfg);border:none;font-size:13px;">Apply to selected</button>
   </div>
 </form>
+
+{% if not leads %}
+<div style="margin-top:24px;text-align:center;color:var(--mut);padding:32px;">
+  <p style="margin:0;">No leads yet. <a href="/searches" class="lf-link" style="color:var(--acc);text-decoration:underline;">Create a search</a> to generate some.</p>
+</div>
+{% endif %}
 {% endblock %}

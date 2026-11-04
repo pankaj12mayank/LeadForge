@@ -1,0 +1,35 @@
+{% extends "layouts/admin.html" %}
+{% set active_page = 'providers' %}
+{% block title %}Provider Health — LeadForge{% endblock %}
+
+{% block content %}
+<h2 class="disp" style="font-size:30px;margin:0 0 16px;font-family:Sora;">Provider health</h2>
+<p style="font-size:13px;color:var(--mut);margin:0 0 20px;">Ping status based on configured credentials. Actual connectivity should be verified in production.</p>
+
+<div class="lf-card" style="border:1px solid var(--line);border-radius:12px;overflow:hidden;">
+<table style="width:100%;border-collapse:collapse;">
+  <thead>
+    <tr style="background:var(--surf2);">
+      <th style="padding:12px 16px;border-bottom:1px solid var(--line);font-size:12px;font-weight:600;color:var(--mut);text-align:left;">Provider</th>
+      <th style="padding:12px 16px;border-bottom:1px solid var(--line);font-size:12px;font-weight:600;color:var(--mut);text-align:left;">Configured</th>
+      <th style="padding:12px 16px;border-bottom:1px solid var(--line);font-size:12px;font-weight:600;color:var(--mut);text-align:left;">Status</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for prov in providers %}
+    <tr style="border-bottom:1px solid var(--line);">
+      <td style="padding:12px 16px;font-size:13px;color:var(--fg);font-weight:600;">{{ prov.name }}</td>
+      <td style="padding:12px 16px;font-size:12px;">
+        <span class="badge {{ 'ok' if prov.ok else 'bad' }}">
+          {{ 'Configured' if prov.ok else 'Not configured' }}
+        </span>
+      </td>
+      <td style="padding:12px 16px;font-size:13px;color:var(--fg);font-family:'JetBrains Mono',monospace;">
+        {{ 'Ready' if prov.ok else 'Add API key in .env' }}
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

@@ -1,9 +1,37 @@
-<span class="px-3 py-1 rounded text-xs font-semibold {{ 'bg-green-100 text-green-700' if job.status=='done' else 'bg-yellow-100 text-yellow-700 animate-pulse' if job.status=='running' else 'bg-slate-100 text-slate-700' }}">{{ job.status }}</span>
-{% if job.error %}
-  <div class="mt-2 text-red-600 text-sm">{{ job.error }}</div>
-{% endif %}
-{% if job.status == 'done' and job.result_summary %}
-  <div class="mt-3 text-sm text-slate-600">
-    Delivered: {{ job.result_summary.delivered }} / collected {{ job.result_summary.collected }} / deduplicated {{ job.result_summary.deduplicated }}
+{% extends "layouts/app.html" %}
+{% block title %}Job status — LeadForge{% endblock %}
+
+{% block content %}
+<div class="lf-card" style="border:1px solid var(--line);border-radius:12px;padding:20px;">
+  <div style="font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;">Job #{{ job.id }} &mdash; {{ job.status }}</div>
+
+  <div style="margin-top:12px;">
+    <div style="font-size:12px;color:var(--fg);margin-bottom:6px;">Progress</div>
+    <div class="progress-wrap">
+      <div class="progress-bar" style="width:{{ (job.result_summary or {}).delivered or 0 }}%"></div>
+    </div>
+    <div style="font-size:12px;color:var(--mut);margin-top:4px;">{{ (job.result_summary or {}).delivered or 0 }} of {{ (job.result_summary or {}).target_count or 0 }} delivered</div>
   </div>
-{% endif %}
+
+  {% if job.result_summary %}
+  <div style="margin-top:16px;display:flex;gap:12px;flex-wrap:wrap;">
+    <div class="stat-card" style="padding:12px 16px;">
+      <div class="label">Collected</div>
+      <div class="value">{{ job.result_summary.collected or 0 }}</div>
+    </div>
+    <div class="stat-card" style="padding:12px 16px;">
+      <div class="label">Deduplicated</div>
+      <div class="value">{{ job.result_summary.deduplicated or 0 }}</div>
+    </div>
+    <div class="stat-card" style="padding:12px 16px;">
+      <div class="label">Credits used</div>
+      <div class="value">{{ job.result_summary.credits_used or 0 }}</div>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if job.error %}
+  <div style="color:var(--bad);font-size:13px;margin-top:12px;">{{ job.error }}</div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,18 +1,33 @@
-{% extends "base.html" %}
-{% block body %}
-<div class="max-w-2xl mx-auto px-4">
-  <h1 class="text-2xl font-bold mb-6">Billing portal</h1>
-  {% if sub %}
-    <div class="bg-white p-6 rounded shadow border mb-6">
-      <h2 class="font-semibold">{{ sub.plan.code|upper }} plan</h2>
-      <p class="text-slate-600">Status: <span class="font-semibold">{{ sub.status }}</span></p>
-      {% if sub.razorpay_subscription_id %}<p class="text-sm text-slate-500">Razorpay: {{ sub.razorpay_subscription_id }}</p>{% endif %}
-    </div>
-  {% else %}
-    <div class="bg-amber-50 p-4 rounded border border-amber-200 mb-6">
-      No active subscription. <a href="/billing/subscribe?plan_code=pro" class="underline">Subscribe to Pro</a>.
-    </div>
+{% extends "layouts/app.html" %}
+{% set active_page = 'billing' %}
+{% block title %}Billing — LeadForge{% endblock %}
+
+{% block content %}
+<h2 class="disp" style="font-size:30px;margin:0 0 16px;font-family:Sora;">Billing portal</h2>
+
+{% if sub and plan %}
+<div class="lf-card" style="border:1px solid var(--line);border-radius:16px;padding:28px;max-width:520px;">
+  <h3 style="font-size:18px;margin:0 0 8px;font-family:Sora;">{{ plan.code|upper }} plan</h3>
+  <p style="font-size:13px;color:var(--mut);margin:0 0 16px;">Status: <span class="badge {{ 'ok' if sub.status=='active' else 'warn' }}">{{ sub.status }}</span></p>
+  {% if sub.razorpay_subscription_id %}
+  <p style="font-size:12px;color:var(--mut);font-family:'JetBrains Mono',monospace;margin:0 0 16px;">Razorpay: {{ sub.razorpay_subscription_id }}</p>
   {% endif %}
-  <a href="/dashboard" class="text-blue-600 underline">Back to dashboard</a>
+  <form method="post" action="/billing/subscribe" style="margin-top:16px;">
+    <input type="hidden" name="plan_code" value="pro">
+    <button class="lf-btn" style="padding:12px 24px;border-radius:10px;background:var(--acc);color:var(--accfg);border:none;font-weight:600;">Manage subscription (Razorpay)</button>
+  </form>
+</div>
+{% else %}
+<div class="lf-card" style="border:1px solid var(--line);border-radius:16px;padding:28px;max-width:520px;background:#fdf0e0;border-color:#f2c99e;">
+  <h3 style="font-size:18px;margin:0 0 8px;font-family:Sora;color:#8a3d06;">No active subscription</h3>
+  <p style="font-size:13px;color:var(--mut);margin:0 0 16px;">You&rsquo;re on a trial. Subscribe to Pro to keep creating jobs after the trial ends.</p>
+  <form method="post" action="/billing/subscribe?plan_code=pro">
+    <button class="lf-btn" style="padding:12px 24px;border-radius:10px;background:var(--acc);color:var(--accfg);border:none;font-weight:600;">Subscribe to Pro</button>
+  </form>
+</div>
+{% endif %}
+
+<div style="margin-top:24px;">
+  <a href="/dashboard" class="lf-btn lf-ghost" style="padding:10px 20px;border-radius:8px;border:1px solid var(--line);">Back to dashboard</a>
 </div>
 {% endblock %}

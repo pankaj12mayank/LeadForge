@@ -1,32 +1,104 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
-  <meta charset="utf-8"><title>{% block title %}LeadForge{% endblock %}</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-  <style>body{font-family:Inter,system-ui,sans-serif}</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}LeadForge{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Manrope:wght@400;500;600;700&family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', path='css/theme.css') }}">
+  {% block extra_head %}{% endblock %}
+  <noscript></noscript>
+  <script>
+    (function(){
+      var KEY = 'lf-theme';
+      var html = document.documentElement;
+      var saved = localStorage.getItem(KEY);
+      var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      var theme = saved || (prefersDark ? 'dark' : 'light');
+      html.setAttribute('data-theme', theme);
+      localStorage.setItem(KEY, theme);
+    })();
+  </script>
 </head>
-<body class="bg-slate-50 text-slate-900 min-h-screen">
-  <nav class="bg-white border-b px-4 py-3 flex items-center justify-between shadow-sm">
-    <div class="flex items-center gap-3">
-      <span class="font-bold text-lg text-blue-600">LeadForge</span>
+<body class="lf">
+  {% block body %}{% endblock %}
+
+  <!-- Toast container -->
+  <div id="lf-toast-container" class="lf-toast-container" aria-live="polite" aria-label="Notifications"></div>
+
+  <!-- Modal overlay + container -->
+  <div id="lf-modal-overlay" class="lf-ov" aria-hidden="true" onclick="lfCloseModal()"></div>
+  <div id="lf-modal" class="lf-modal" aria-hidden="true" aria-modal="true" role="dialog">
+    <div id="lf-modal-content" class="lf-card" style="background:var(--surf);border:1px solid var(--line);border-radius:16px;padding:24px;max-width:560px;width:92%;max-height:85vh;overflow:auto;position:relative;">
+      <button id="lf-modal-close" class="lf-btn lf-ghost" style="position:absolute;top:12px;right:12px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:8px;" aria-label="Close modal" onclick="lfCloseModal()">&#215;</button>
+      <div id="lf-modal-body"></div>
     </div>
-    <div class="flex items-center gap-4">
-      <a href="/dashboard" class="px-3 py-2 text-slate-600 hover:bg-slate-100 rounded">Dashboard</a>
-      <a href="/searches" class="px-3 py-2 text-slate-600 hover:bg-slate-100 rounded">Searches</a>
-      <a href="/leads" class="px-3 py-2 text-slate-600 hover:bg-slate-100 rounded">Leads</a>
-      {% if user %}
-        <span class="text-xs text-slate-400">{{ credits if credits is defined else '' }} credits</span>
-        <form method="post" action="/auth/logout"><button class="text-xs text-red-600 underline">Sign out</button></form>
-      {% else %}
-        <a href="/auth/login" class="px-3 py-2 bg-blue-600 text-white rounded text-sm">Sign in</a>
-        <a href="/auth/signup" class="px-3 py-2 border border-slate-300 text-slate-700 rounded text-sm">Sign up</a>
-      {% endif %}
-    </div>
-  </nav>
-  <div class="max-w-4xl mx-auto py-6 px-4">
-    {% block body %}{% endblock %}
   </div>
+
+  <script>
+    window.lfShowToast = function(kind, title, msg) {
+      var container = document.getElementById('lf-toast-container');
+      var el = document.createElement('div');
+      el.className = 'lf-toast kind-' + (kind || 'ok');
+      el.role = 'status';
+      el.innerHTML = '<span style="font-weight:600;">' + (title || '') + '</span>' +
+                     (msg ? '<span style="opacity:.7;font-size:13px;margin-left:8px;">' + msg + '</span>' : '') +
+                     '<button class="lf-toast-close" onclick="this.closest(\'.lf-toast\').remove()" aria-label="Dismiss">&#215;</button>';
+      container.appendChild(el);
+      setTimeout(function(){ if (el.isConnected) el.remove(); }, 3400);
+    };
+
+    window.lfOpenModal = function(htmlContent) {
+      var modal = document.getElementById('lf-modal');
+      var overlay = document.getElementById('lf-modal-overlay');
+      var body = document.getElementById('lf-modal-body');
+      body.innerHTML = htmlContent;
+      modal.setAttribute('aria-hidden', 'false');
+      overlay.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+      document.getElementById('lf-modal-close').focus();
+    };
+
+    window.lfCloseModal = function() {
+      var modal = document.getElementById('lf-modal');
+      var overlay = document.getElementById('lf-modal-overlay');
+      modal.setAttribute('aria-hidden', 'true');
+      overlay.setAttribute('aria-hidden', 'true');
+      document.getElementById('lf-modal-body').innerHTML = '';
+      document.body.style.overflow = '';
+    };
+
+    window.lfToggleTheme = function() {
+      var html = document.documentElement;
+      var cur = html.getAttribute('data-theme');
+      var next = cur === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('lf-theme', next);
+    };
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        var modal = document.getElementById('lf-modal');
+        if (modal.getAttribute('aria-hidden') === 'false') lfCloseModal();
+      }
+    });
+
+    // HTMX toast listener
+    document.body.addEventListener('htmx:afterRequest', function(evt) {
+      var hx = evt.detail.xhr;
+      if (!hx) return;
+      var trigger = hx.getResponseHeader('HX-Trigger');
+      if (!trigger) return;
+      try {
+        var payload = JSON.parse(trigger);
+        if (payload && payload.toast) {
+          var t = payload.toast;
+          window.lfShowToast(t.kind || 'ok', t.title || '', t.msg || '');
+        }
+      } catch (err) {}
+    });
+  </script>
 </body>
 </html>

@@ -6,29 +6,29 @@ from fastapi import APIRouter, Depends, Header, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, PlainTextResponse
 from sqlalchemy.orm import Session
 
-from app.auth.deps import current_org_id, require_user
+from app.auth.deps import current_org_id, require_user, require_user
 from app.config import settings
 from app.db import SessionLocal, get_db
-from app.models import SubStatus
+from app.models import Plan, Subscription, SubStatus
 from app.services.integrations import verify_razorpay_signature
 from app.services.quota import add_credits
 
 router = APIRouter()
 
 
-def _render(request: Request, template: str, status_code: int = 200, **ctx) -> HTMLResponse:
+def _render(request: Request, template: str, status_code: int = 200, user=None, **ctx) -> HTMLResponse:
     from app.main import templates
 
     ctx.setdefault("request", request)
-    ctx.setdefault("user", current_user(request))
+    ctx.setdefault("user", user)
     return HTMLResponse(
         templates.get_template(template).render(**ctx), status_code=status_code
     )
 
 
 @router.get("/billing/pricing")
-def pricing_page(request: Request):
-    return _render(request, "pricing.html", settings=settings)
+def pricing_page(request: Request, user=Depends(require_user)):
+    return _render(request, "pricing.html", settings=settings, user=user)
 
 
 @router.post("/billing/subscribe")
@@ -63,20 +63,23 @@ def subscribe(request: Request, org_id: int = Depends(current_org_id), plan_code
 
 
 @router.get("/billing/portal")
-def billing_portal(request: Request, org_id: int = Depends(current_org_id), db: Session = Depends(get_db)):
+def billing_portal(request: Request, user=Depends(require_user), org_id: int = Depends(current_org_id), db: Session = Depends(get_db)):
     sub = (
         db.query(Subscription)
         .filter(Subscription.org_id == org_id)
         .order_by(Subscription.created_at.desc())
         .first()
     )
+    plan = db.get(Plan, sub.plan_id) if sub else None
     return _render(
         request,
         "portal.html",
         sub=sub,
+        plan=plan,
         settings=settings,
         razorpay_key=settings.RAZORPAY_KEY_ID,
         mode=settings.RAZORPAY_MODE,
+        user=user,
     )
 
 

@@ -1,0 +1,131 @@
+{% macro button(text, type="submit", klass="", href=None, disabled=False, icon=None) %}
+{% if href %}
+<a href="{{ href }}" class="lf-btn{{ ' ' + klass if klass else '' }}" {{ 'disabled' if disabled else '' }} role="button" aria-disabled="{{ 'true' if disabled else 'false' }}">{% if icon %}<span aria-hidden="true">{{ icon }}</span> {% endif %}{{ text }}</a>
+{% else %}
+<button type="{{ type }}" class="lf-btn{{ ' ' + klass if klass else '' }}" {{ 'disabled' if disabled else '' }}>
+{% if icon %}<span aria-hidden="true">{{ icon }}</span> {% endif %}{{ text }}</button>
+{% endif %}
+{% endmacro %}
+
+{% macro input(name, type="text", value="", placeholder="", required=False, klass="", error=None) %}
+<div style="margin-bottom:14px;">
+{% if placeholder %}<label class="sr-only" for="{{ name }}">{{ placeholder }}</label>{% endif %}
+<input type="{{ type }}" name="{{ name }}" id="{{ name }}" value="{{ value }}" placeholder="{{ placeholder }}"
+  class="lf-in {{ 'lf-invalid' if error else '' }} {{ klass }}"
+  style="width:100%;padding:10px 12px;border:1px solid {{ 'var(--bad)' if error else 'var(--line)' }};border-radius:10px;background:var(--surf);color:var(--fg);font-size:14px;"
+  {% if required %}required{% endif %}>
+{% if error %}<p style="color:var(--bad);font-size:12px;margin-top:4px;">{{ error }}</p>{% endif %}
+</div>
+{% endmacro %}
+
+{% macro select(name, options, value="", placeholder="Select…", klass="") %}
+<div style="margin-bottom:14px;">
+<label class="sr-only" for="{{ name }}">{{ placeholder }}</label>
+<select name="{{ name }}" id="{{ name }}"
+  class="lf-in {{ klass }}"
+  style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surf);color:var(--fg);font-size:14px;">
+  <option value="">{{ placeholder }}</option>
+{% for opt_val, opt_label in options %}
+  <option value="{{ opt_val }}" {{ 'selected' if opt_val == value else '' }}>{{ opt_label }}</option>
+{% endfor %}
+</select>
+</div>
+{% endmacro %}
+
+{% macro badge(kind, text) %}
+<span class="badge {{ kind }}">{{ text }}</span>
+{% endmacro %}
+
+{% macro stat_card(label, value, delta=None, delta_kind=None) %}
+<div class="stat-card">
+  <div class="label">{{ label }}</div>
+  <div class="value">{{ value }}</div>
+{% if delta is not none %}
+  <div class="delta {{ delta_kind or '' }}">{{ delta }}</div>
+{% endif %}
+</div>
+{% endmacro %}
+
+{% macro table(headers, rows, row_attrs=None) %}
+<div style="border:1px solid var(--line);border-radius:12px;overflow:auto;">
+<table style="width:100%;border-collapse:collapse;background:var(--surf);">
+  <thead>
+    <tr>
+{% for h in headers %}
+      <th style="text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);font-size:12px;font-weight:600;color:var(--mut);background:var(--surf2);">{{ h }}</th>
+{% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+{% for row in rows %}
+    <tr{{ row_attrs(row) if row_attrs else '' }}>
+{% for cell in row %}
+      <td style="padding:10px 12px;border-bottom:1px solid var(--line);font-size:13px;color:var(--fg);border-top:1px solid var(--line);">{{ cell }}</td>
+{% endfor %}
+    </tr>
+{% endfor %}
+  </tbody>
+</table>
+</div>
+{% endmacro %}
+
+{% macro pagination(page, total_pages, url_template) %}
+<nav style="display:flex;justify-content:center;gap:6px;margin-top:16px;" aria-label="Pagination">
+{% if page > 1 %}
+<a href="{{ url_template|replace('{page}', (page-1)|string) }}" class="lf-btn lf-ghost" style="padding:6px 12px;border-radius:8px;border:1px solid var(--line);">&#9664; Prev</a>
+{% endif %}
+{% for p in range(1, total_pages + 1) %}
+{% if p == page %}
+<span class="lf-btn lf-ghost" style="padding:6px 12px;border-radius:8px;background:var(--acc);color:var(--accfg);border-color:var(--acc);">{{ p }}</span>
+{% else %}
+<a href="{{ url_template|replace('{page}', p|string) }}" class="lf-btn lf-ghost" style="padding:6px 12px;border-radius:8px;border:1px solid var(--line);">{{ p }}</a>
+{% endif %}
+{% endfor %}
+{% if page < total_pages %}
+<a href="{{ url_template|replace('{page}', (page+1)|string) }}" class="lf-btn lf-ghost" style="padding:6px 12px;border-radius:8px;border:1px solid var(--line);">Next &#9654;</a>
+{% endif %}
+</nav>
+{% endmacro %}
+
+{% macro progress(steps, current_step) %}
+<div style="margin-top:12px;">
+{% for s in steps %}
+<div style="display:flex;align-items:center;gap:8;margin-bottom:6px;">
+  <div style="width:10px;height:10px;border-radius:50%;background:{{ 'var(--acc)' if loop.index <= current_step else 'var(--line)' }};"></div>
+  <span style="font-size:12px;color:{{ 'var(--fg)' if loop.index <= current_step else 'var(--mut)' }};font-weight:{{ '600' if loop.index == current_step else '400' }};">{{ s }}</span>
+</div>
+{% endfor %}
+</div>
+{% endmacro %}
+
+{% macro bar_chart(bars) %}
+<div style="display:flex;align-items:flex-end;gap:8px;padding:16px 0;min-height:200px;">
+{% for b in bars %}
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;">
+  <div class="lf-bar" style="--h:{{ b.height }}px;--c:{{ b.color or 'var(--acc)' }};--d:{{ b.delay or '0s' }};" data-tip="{{ b.label }}: {{ b.value }}"></div>
+  <span style="font-size:11px;color:var(--mut);writing-mode:vertical-rl;text-orientation:mixed;">{{ b.label }}</span>
+</div>
+{% endfor %}
+</div>
+{% endmacro %}
+
+{% macro line_chart(svg_content) %}
+<svg viewBox="0 0 400 200" class="lf-line" style="width:100%;height:200px;" aria-label="Line chart">
+{{ svg_content | safe }}
+</svg>
+{% endmacro %}
+
+{% macro donut_chart(value, label) %}
+<div class="lf-dwrap" aria-label="{{ label }}: {{ value }}">
+  <svg width="260" height="260" viewBox="0 0 260 260">
+    <circle cx="130" cy="130" r="110" fill="none" stroke="var(--line)" stroke-width="12"/>
+    <circle cx="130" cy="130" r="110" fill="none" stroke="var(--acc)" stroke-width="12"
+      stroke-dasharray="{{ value * 6.91 }}, 691"
+      style="transform:rotate(-90deg);transform-origin:130px 130px;transition:stroke-dasharray 0.8s ease;"/>
+  </svg>
+  <div class="lf-disc" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:32px;font-weight:700;color:var(--fg);">{{ value }}%</div>
+    <div style="font-size:12px;color:var(--mut);margin-top:4px;">{{ label }}</div>
+  </div>
+</div>
+{% endmacro %}

@@ -1,0 +1,545 @@
+/* ==========================================================================
+   LeadForge Design Tokens
+   Extracted from docs/design/*.dc.html
+   ========================================================================== */
+
+/* Light theme (default) */
+html {
+  --bg: #faf9f5;
+  --fg: #14181d;
+  --surf: #ffffff;
+  --surf2: #f3f4f6;
+  --line: #d9dee5;
+  --mut: #6b6a68;
+  --acc: #0b7a75;
+  --accfg: #ffffff;
+  --acc2: #3dc9c2;
+  --ok: #157347;
+  --okfg: #ffffff;
+  --warn: #b45309;
+  --warnfg: #ffffff;
+  --bad: #b42318;
+  --badfg: #ffffff;
+  --shadow: rgba(16, 24, 40, 0.10);
+  --shadow-h: rgba(16, 24, 40, 0.28);
+  --ring: rgba(11, 122, 117, 0.35);
+}
+
+/* Dark theme */
+html[data-theme="dark"] {
+  --bg: #0b0d10;
+  --fg: #eef1f5;
+  --surf: #14181d;
+  --surf2: #1c2128;
+  --line: #2a313a;
+  --mut: #9aa4b2;
+  --acc: #0b7a75;
+  --accfg: #ffffff;
+  --acc2: #3dc9c2;
+  --ok: #157347;
+  --okfg: #ffffff;
+  --warn: #b45309;
+  --warnfg: #ffffff;
+  --bad: #b42318;
+  --badfg: #ffffff;
+  --shadow: rgba(8, 10, 14, 0.62);
+  --shadow-h: rgba(8, 10, 14, 0.85);
+  --ring: rgba(11, 122, 117, 0.45);
+}
+
+/* ==========================================================================
+   Base
+   ========================================================================== */
+html {
+  font-size: 14px;
+  line-height: 1.4;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: 'Manrope', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.lf {
+  font-family: 'Manrope', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+  -webkit-font-smoothing: antialiased;
+}
+
+.lf h1, .lf h2, .lf h3, .lf .disp {
+  font-family: 'Sora', sans-serif;
+  letter-spacing: -0.025em;
+}
+
+.lf .mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.lf button, .lf input, .lf textarea, .lf select {
+  font-family: inherit;
+}
+
+.lf button {
+  cursor: pointer;
+}
+
+.lf a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.lf :focus-visible {
+  outline: 2px solid var(--acc);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lf * {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition: none !important;
+  }
+}
+
+/* ==========================================================================
+   Components
+   ========================================================================== */
+.lf-btn {
+  transition: transform 0.18s, box-shadow 0.18s, background 0.18s, border-color 0.18s, color 0.18s;
+}
+
+.lf-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px -10px var(--acc);
+}
+
+.lf-btn:active {
+  transform: translateY(0);
+}
+
+.lf-ghost:hover {
+  border-color: var(--acc);
+  color: var(--acc);
+}
+
+.lf-card {
+  transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.28s, border-color 0.28s;
+}
+
+.lf-card:hover {
+  transform: translateY(-5px);
+  border-color: var(--acc);
+  box-shadow: var(--shadow-h);
+}
+
+.lf-row {
+  transition: background 0.15s;
+}
+
+.lf-row:hover {
+  background: var(--surf2);
+}
+
+.lf-link {
+  transition: color 0.15s;
+}
+
+.lf-link:hover {
+  color: var(--acc);
+}
+
+.lf-logo {
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.lf-logo:hover {
+  transform: rotate(-6deg) scale(1.06);
+}
+
+.lf-nav {
+  transition: background 0.15s, color 0.15s, transform 0.15s;
+}
+
+.lf-nav:hover {
+  background: var(--surf2);
+  transform: translateX(3px);
+}
+
+.lf-in {
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.lf-in:focus {
+  outline: none;
+  border-color: var(--acc);
+  box-shadow: 0 0 0 3px var(--ring);
+}
+
+/* ==========================================================================
+   3D Bar chart (lf-bar)
+   ========================================================================== */
+.lf-bar {
+  position: relative;
+  width: 56px;
+  height: var(--h, 100px);
+  background: var(--c, var(--acc));
+  animation: lf-rise 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) var(--d, 0s) both;
+  transition: filter 0.2s, transform 0.2s;
+}
+
+.lf-bar:hover {
+  filter: brightness(1.12);
+  transform: translateY(-8px);
+}
+
+.lf-bt {
+  position: absolute;
+  left: 0;
+  bottom: 100%;
+  width: 100%;
+  height: 22px;
+  background: var(--c, var(--acc));
+  filter: brightness(1.3);
+  transform-origin: bottom left;
+  transform: skewX(-45deg);
+}
+
+.lf-bs {
+  position: absolute;
+  left: 100%;
+  top: 0;
+  width: 22px;
+  height: 100%;
+  background: var(--c, var(--acc));
+  filter: brightness(0.68);
+  transform-origin: top left;
+  transform: skewY(-45deg);
+}
+
+.lf-bar::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 34px);
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
+  background: var(--fg);
+  color: var(--bg);
+  padding: 4px 9px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  transition: opacity 0.15s;
+}
+
+.lf-bar:hover::after {
+  opacity: 1;
+}
+
+@keyframes lf-rise {
+  from { height: 0; }
+  to { height: var(--h, 100px); }
+}
+
+/* ==========================================================================
+   Line chart (lf-line)
+   ========================================================================== */
+.lf-line {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: lf-draw 1.8s cubic-bezier(0.3, 0.7, 0.2, 1) 0.2s forwards;
+}
+
+@keyframes lf-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+/* ==========================================================================
+   Donut chart (lf-disc)
+   ========================================================================== */
+.lf-dwrap {
+  perspective: 1000px;
+  width: 260px;
+  height: 260px;
+}
+
+.lf-disc {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transform: rotateX(58deg);
+  transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.lf-dwrap:hover .lf-disc {
+  transform: rotateX(35deg);
+}
+
+.lf-spinz {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  animation: lf-spinz 26s linear infinite;
+}
+
+.lf-layer {
+  position: absolute;
+  inset: 0;
+}
+
+@keyframes lf-spinz {
+  from { transform: rotateZ(0); }
+  to { transform: rotateZ(360deg); }
+}
+
+/* ==========================================================================
+   Area chart / scene
+   ========================================================================== */
+.lf-scene {
+  transform-style: preserve-3d;
+  transform: rotateX(10deg) rotateY(-20deg);
+  transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.lf-scene:hover {
+  transform: rotateX(4deg) rotateY(-8deg);
+}
+
+.lf-stage {
+  animation: lf-sway 10s ease-in-out infinite;
+}
+
+.lf-area {
+  opacity: 0;
+  animation: lf-fade 0.8s ease 1.2s forwards;
+}
+
+.lf-pt {
+  transition: r 0.15s;
+}
+
+.lf-pt:hover {
+  r: 7;
+}
+
+@keyframes lf-sway {
+  0%, 100% { transform: perspective(1100px) rotateY(-9deg) rotateX(5deg); }
+  50% { transform: perspective(1100px) rotateY(9deg) rotateX(3deg); }
+}
+
+/* ==========================================================================
+   Progress bar (lf-prog)
+   ========================================================================== */
+.lf-prog {
+  background: repeating-linear-gradient(45deg, var(--acc), var(--acc) 8px, var(--acc2) 8px, var(--acc2) 16px);
+  background-size: 200% 100%;
+  animation: lf-stripe 1s linear infinite;
+}
+
+@keyframes lf-stripe {
+  to { background-position: 32px 0; }
+}
+
+/* ==========================================================================
+   Animations
+   ========================================================================== */
+.lf-spin {
+  animation: lf-spin 1s linear infinite;
+}
+
+.lf-skel {
+  background: linear-gradient(90deg, var(--surf2), var(--line), var(--surf2));
+  background-size: 200% 100%;
+  animation: lf-shim 1.4s linear infinite;
+}
+
+.lf-l1 { animation: lf-float 6s ease-in-out infinite; }
+.lf-l2 { animation: lf-float 7s ease-in-out -2s infinite; }
+.lf-l3 { animation: lf-float 8s ease-in-out -4s infinite; }
+
+@keyframes lf-spin { to { transform: rotate(360deg); } }
+@keyframes lf-shim { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+@keyframes lf-toast { from { opacity: 0; transform: translateY(14px) scale(0.96); } to { opacity: 1; transform: none; } }
+@keyframes lf-pop { from { opacity: 0; transform: translateY(12px) scale(0.97); } to { opacity: 1; transform: none; } }
+@keyframes lf-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes lf-pulse {
+  0% { box-shadow: 0 0 0 0 var(--acc); }
+  70% { box-shadow: 0 0 0 10px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+@keyframes lf-view { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes lf-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+
+.lf-dot { animation: lf-pulse 2s infinite; }
+
+.lf-toast { animation: lf-toast 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.lf-modal { animation: lf-pop 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.lf-ov { animation: lf-fade 0.2s both; }
+.lf-view { animation: lf-view 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+
+/* ==========================================================================
+   Utilities (modal, toast, badges, etc.)
+   ========================================================================== */
+.lf-ov {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 10, 14, 0.45);
+  backdrop-filter: blur(2px);
+  z-index: 400;
+}
+
+.lf-modal {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 500;
+}
+
+.lf-modal > .lf-card {
+  max-width: 560px;
+  width: 92%;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.lf-toast-container {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 600;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.lf-toast {
+  pointer-events: auto;
+  background: var(--surf);
+  border: 1px solid var(--line);
+  color: var(--fg);
+  padding: 10px 14px;
+  border-radius: 10px;
+  box-shadow: var(--shadow-h);
+  min-width: 260px;
+  max-width: 400px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.lf-toast .lf-toast-close {
+  background: none;
+  border: none;
+  color: var(--mut);
+  cursor: pointer;
+  padding: 2px;
+  line-height: 1;
+}
+
+.lf-toast.kind-ok { border-left: 3px solid var(--ok); }
+.lf-toast.kind-warn { border-left: 3px solid var(--warn); }
+.lf-toast.kind-bad { border-left: 3px solid var(--bad); }
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid var(--line);
+  background: var(--surf2);
+  color: var(--fg);
+}
+
+.badge.ok { background: #e7f7ec; color: #0e5a34; border-color: #b9e8ca; }
+.badge.warn { background: #fdf0e0; color: #8a3d06; border-color: #f2c99e; }
+.badge.bad { background: #fbeaea; color: #8a1f11; border-color: #e8b7b0; }
+.badge.acc { background: #e3f3f2; color: #085b57; border-color: #b8e3e0; }
+
+.stat-card {
+  background: var(--surf);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 18px 20px;
+}
+
+.stat-card .value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--fg);
+}
+
+.stat-card .label {
+  font-size: 12px;
+  color: var(--mut);
+  margin-top: 4px;
+}
+
+.stat-card .delta {
+  font-size: 12px;
+  margin-top: 6px;
+}
+
+.delta.ok { color: var(--ok); }
+.delta.bad { color: var(--bad); }
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--mut);
+}
+
+.empty-state .icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.progress-wrap {
+  height: 8px;
+  background: var(--surf2);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.progress-bar {
+  height: 100%;
+  background: var(--acc);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}

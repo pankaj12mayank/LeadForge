@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% set active_page = active_page or 'overview' %}
+
+{% block body %}
+<div class="lf" style="display:flex;min-height:100vh;">
+  <!-- Admin sidebar (dark) -->
+  <aside style="width:260px;background:#0e1116;border-right:1px solid var(--line);display:flex;flex-direction:col;z-index:10;color:var(--fg);">
+    <div style="padding:20px 16px;display:flex;align-items:center;gap:10;border-bottom:1px solid var(--line);">
+      <svg class="lf-logo" width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="LeadForge">
+        <rect width="28" height="28" x="2" y="2" rx="8" fill="var(--acc)" stroke="var(--acc)" stroke-width="2"/>
+        <path d="M10 16h12M10 20h8" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+      </svg>
+      <span class="disp" style="font-size:16px;font-weight:700;letter-spacing:-0.03em;">Admin</span>
+    </div>
+    <nav style="padding:12px 16px;display:flex;flex-direction:column;gap:4;flex:1;overflow-y:auto;">
+      <a href="/admin" class="lf-nav lf-btn lf-ghost {% if active_page=='overview' %}lf-card{% endif %}" style="padding:10px 12px;border-radius:10px;border:1px solid transparent;width:100%;text-align:left;display:flex;align-items:center;gap:10;color:inherit;" aria-current="{% if active_page=='overview' %}true{% else %}false{% endif %}">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:12px;opacity:.6;">&#9632;</span> Overview
+      </a>
+      <a href="/admin/users" class="lf-nav lf-btn lf-ghost {% if active_page=='users' %}lf-card{% endif %}" style="padding:10px 12px;border-radius:10px;border:1px solid transparent;width:100%;text-align:left;display:flex;align-items:center;gap:10;color:inherit;" aria-current="{% if active_page=='users' %}true{% else %}false{% endif %}">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:12px;opacity:.6;">&#9632;</span> Users &amp; Orgs
+      </a>
+      <a href="/admin/jobs" class="lf-nav lf-btn lf-ghost {% if active_page=='jobs' %}lf-card{% endif %}" style="padding:10px 12px;border-radius:10px;border:1px solid transparent;width:100%;text-align:left;display:flex;align-items:center;gap:10;color:inherit;" aria-current="{% if active_page=='jobs' %}true{% else %}false{% endif %}">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:12px;opacity:.6;">&#9632;</span> Jobs Monitor
+      </a>
+      <a href="/admin/plans" class="lf-nav lf-btn lf-ghost {% if active_page=='plans' %}lf-card{% endif %}" style="padding:10px 12px;border-radius:10px;border:1px solid transparent;width:100%;text-align:left;display:flex;align-items:center;gap:10;color:inherit;" aria-current="{% if active_page=='plans' %}true{% else %}false{% endif %}">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:12px;opacity:.6;">&#9632;</span> Plans
+      </a>
+      <a href="/admin/providers" class="lf-nav lf-btn lf-ghost {% if active_page=='providers' %}lf-card{% endif %}" style="padding:10px 12px;border-radius:10px;border:1px solid transparent;width:100%;text-align:left;display:flex;align-items:center;gap:10;color:inherit;" aria-current="{% if active_page=='providers' %}true{% else %}false{% endif %}">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:12px;opacity:.6;">&#9632;</span> Provider Health
+      </a>
+      <a href="/admin/audit" class="lf-nav lf-btn lf-ghost {% if active_page=='audit' %}lf-card{% endif %}" style="padding:10px 12px;border-radius:10px;border:1px solid transparent;width:100%;text-align:left;display:flex;align-items:center;gap:10;color:inherit;" aria-current="{% if active_page=='audit' %}true{% else %}false{% endif %}">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:12px;opacity:.6;">&#9632;</span> Audit Log
+      </a>
+    </nav>
+    <div style="padding:16px;border-top:1px solid var(--line);">
+      <div style="font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">System</div>
+      <button class="lf-btn lf-ghost" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid var(--line);text-align:left;display:flex;align-items:center;gap:10;" onclick="document.getElementById('lf-theme-toggle-admin').click()" aria-label="Toggle theme">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:12px;">&#127774;</span> Theme
+      </button>
+      <button id="lf-theme-toggle-admin" class="sr-only" onclick="lfToggleTheme()"></button>
+    </div>
+  </aside>
+
+  <main style="flex:1;padding:24px;overflow-y:auto;">
+    {% block content %}{% endblock %}
+  </main>
+</div>
+{% endblock %}
