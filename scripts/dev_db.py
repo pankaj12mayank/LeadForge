@@ -2,6 +2,7 @@
 
 Uses the PostgreSQL binaries bundled with the `pgserver` package so no system
 PostgreSQL installation is required. Prints the DATABASE_URL to stdout.
+Idempotent: if Postgres is already running on the port, just prints the URL.
 """
 
 from __future__ import annotations
@@ -24,16 +25,28 @@ INITDB = BIN / "initdb.exe"
 PG_ISREADY = BIN / "pg_isready.exe"
 
 
+def _ready() -> bool:
+    r = subprocess.run([str(PG_ISREADY), "-p", str(PORT)], capture_output=True, text=True)
+    return r.returncode == 0
+
+
 def main() -> None:
+    URL = f"postgresql+psycopg2://postgres:@127.0.0.1:{PORT}/postgres"
+    if _ready():
+        print(URL, flush=True)
+        return
+
     PGDATA.mkdir(parents=True, exist_ok=True)
     if not (PGDATA / "PG_VERSION").exists():
         subprocess.run([str(INITDB), "-D", str(PGDATA), "-U", "postgres"], check=True)
-    subprocess.run([str(PG_CTL), "-D", str(PGDATA), "-o", f"-p {PORT}", "start"], check=True)
+    # Start may report "lock file exists" if another process owns it; ignore non-zero
+    # and fall through to the ready-wait loop.
+    subprocess.run([str(PG_CTL), "-D", str(PGDATA), "-o", f"-p {PORT}", "start"])
+
     deadline = time.time() + 30
     while time.time() < deadline:
-        r = subprocess.run([str(PG_ISREADY), "-p", str(PORT)], capture_output=True, text=True)
-        if r.returncode == 0:
-            print(f"postgresql+psycopg2://postgres:@127.0.0.1:{PORT}/postgres", flush=True)
+        if _ready():
+            print(URL, flush=True)
             return
         time.sleep(0.5)
     raise SystemExit("postgres did not become ready")

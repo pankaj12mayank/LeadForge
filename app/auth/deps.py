@@ -1,14 +1,14 @@
 from __future__ import annotations
 
-from typing import Callable
 from fastapi import Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
-from app.db import get_db
+from app.db import SessionLocal, get_db
 from app.models import User, Membership
 
 
-def current_user(request: Request, db: Session = Depends(get_db)) -> User | None:
+def _get_current_user(request: Request, db: Session) -> User | None:
+    """Resolve the logged-in user from the session cookie using an existing db session."""
     token = request.cookies.get("session")
     if not token:
         return None
@@ -23,7 +23,23 @@ def current_user(request: Request, db: Session = Depends(get_db)) -> User | None
     return user
 
 
-def require_user(user: User | None = Depends(current_user)) -> User:
+def current_user(request: Request) -> User | None:
+    """Plain helper used by template _render functions. Creates its own session."""
+    db = SessionLocal()
+    try:
+        return _get_current_user(request, db)
+    finally:
+        db.close()
+
+
+def get_current_user_dep(
+    request: Request, db: Session = Depends(get_db)
+) -> User | None:
+    """FastAPI dependency version of current_user."""
+    return _get_current_user(request, db)
+
+
+def require_user(user: User | None = Depends(get_current_user_dep)) -> User:
     if not user:
         raise HTTPException(status_code=303, headers={"Location": "/auth/login"})
     return user
