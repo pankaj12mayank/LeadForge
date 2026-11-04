@@ -30,6 +30,10 @@ _env.globals["bar_chart"] = _macros.module.bar_chart
 _env.globals["line_chart"] = _macros.module.line_chart
 _env.globals["donut_chart"] = _macros.module.donut_chart
 
+# Design theme tokens (exact values from docs/design/LeadForge Design System.html)
+_env.globals["THEME_LIGHT"] = '--bg:#F3F4F6;--surf:#FFFFFF;--surf2:#EBEEF2;--line:#D9DEE5;--fg:#0E1116;--mut:#4B5563;--acc:#C8431A;--accfg:#FFFFFF;--acc2:#0B7A75;--ok:#157347;--ring:rgba(200,67,26,.22);--shadow:0 1px 2px rgba(16,24,40,.06),0 10px 28px -10px rgba(16,24,40,.10);--shadow-h:0 18px 40px -14px rgba(16,24,40,.28);'
+_env.globals["THEME_DARK"] = '--bg:#0B0D10;--surf:#14181D;--surf2:#1C2128;--line:#2A313A;--fg:#EEF1F5;--mut:#9AA4B2;--acc:#FF7A45;--accfg:#1A0B04;--acc2:#3DC9C2;--ok:#4ADE80;--ring:rgba(255,122,69,.28);--shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px -10px rgba(0,0,0,.5);--shadow-h:0 18px 44px -14px rgba(0,0,0,.7);'
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

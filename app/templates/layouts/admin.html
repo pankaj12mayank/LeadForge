@@ -2,47 +2,59 @@
 {% set active_page = active_page or 'overview' %}
 
 {% block body %}
-<div class="lf" style="display:flex;min-height:100vh;">
-  <!-- Admin sidebar (dark) -->
-  <aside style="width:260px;background:#0e1116;border-right:1px solid var(--line);display:flex;flex-direction:col;z-index:10;color:var(--fg);">
-    <div style="padding:20px 16px;display:flex;align-items:center;gap:10;border-bottom:1px solid var(--line);">
-      <svg class="lf-logo" width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="LeadForge">
-        <rect width="28" height="28" x="2" y="2" rx="8" fill="var(--acc)" stroke="var(--acc)" stroke-width="2"/>
-        <path d="M10 16h12M10 20h8" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
-      </svg>
-      <span class="disp" style="font-size:16px;font-weight:700;letter-spacing:-0.03em;">Admin</span>
-    </div>
-    <nav style="padding:12px 16px;display:flex;flex-direction:column;gap:4;flex:1;overflow-y:auto;">
-      <a href="/admin" class="lf-nav lf-btn lf-ghost {% if active_page=='overview' %}lf-card{% endif %}" style="padding:10px 12px;border-radius:10px;border:1px solid transparent;width:100%;text-align:left;display:flex;align-items:center;gap:10;color:inherit;" aria-current="{% if active_page=='overview' %}true{% else %}false{% endif %}">
-        <span style="font-family:'JetBrains Mono',monospace;font-size:12px;opacity:.6;">&#9632;</span> Overview
+<div class="lf" style="box-sizing:border-box;position:relative;display:flex;flex-wrap:wrap">
+
+  <!-- ADMIN SIDEBAR (dark surf) -->
+  <aside style="flex:1 1 248px;max-width:100%;min-width:220px;box-sizing:border-box;padding:22px 16px;border-right:1px solid var(--line);background:var(--surf);display:flex;flex-direction:column;gap:22px">
+    <a href="/admin" style="display:flex;align-items:center;gap:10px;padding:0 8px" aria-label="LeadForge admin">
+      <svg width="32" height="32" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="10" fill="var(--acc)"></rect><path d="M8 10h24v6H8z" fill="var(--accfg)"></path><path d="M11 18h18l-5 8v3h-8v-3z" fill="var(--accfg)"></path><rect x="12" y="31" width="16" height="3" rx="1.5" fill="var(--accfg)"></rect></svg>
+      <span class="disp" style="font-weight:700;font-size:17px">Admin</span>
+    </a>
+    <nav aria-label="Main" style="display:flex;flex-direction:column;gap:4px">
+      <a href="/admin" class="lf-nav {% if active_page=='overview' %}lf-card{% endif %}" style="display:flex;align-items:center;gap:12px;padding:11px 12px;border:0;border-radius:12px;background:{{ 'var(--surf2)' if active_page=='overview' else 'transparent' }};color:var(--fg);font-weight:700;font-size:14px;text-align:left;min-height:44px">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>Overview
       </a>
-      <a href="/admin/users" class="lf-nav lf-btn lf-ghost {% if active_page=='users' %}lf-card{% endif %}" style="padding:10px 12px;border-radius:10px;border:1px solid transparent;width:100%;text-align:left;display:flex;align-items:center;gap:10;color:inherit;" aria-current="{% if active_page=='users' %}true{% else %}false{% endif %}">
-        <span style="font-family:'JetBrains Mono',monospace;font-size:12px;opacity:.6;">&#9632;</span> Users &amp; Orgs
+      <a href="/admin/users" class="lf-nav {% if active_page=='users' %}lf-card{% endif %}" style="display:flex;align-items:center;gap:12px;padding:11px 12px;border:0;border-radius:12px;background:{{ 'var(--surf2)' if active_page=='users' else 'transparent' }};color:var(--fg);font-weight:700;font-size:14px;text-align:left;min-height:44px">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></path><path d="M23 21v-2a4 4 0 0 0-3-3.47M16 3.13a4 4 0 0 1 0 7.75"></path></svg>Users &amp; Orgs
       </a>
-      <a href="/admin/jobs" class="lf-nav lf-btn lf-ghost {% if active_page=='jobs' %}lf-card{% endif %}" style="padding:10px 12px;border-radius:10px;border:1px solid transparent;width:100%;text-align:left;display:flex;align-items:center;gap:10;color:inherit;" aria-current="{% if active_page=='jobs' %}true{% else %}false{% endif %}">
-        <span style="font-family:'JetBrains Mono',monospace;font-size:12px;opacity:.6;">&#9632;</span> Jobs Monitor
+      <a href="/admin/jobs" class="lf-nav {% if active_page=='jobs' %}lf-card{% endif %}" style="display:flex;align-items:center;gap:12px;padding:11px 12px;border:0;border-radius:12px;background:{{ 'var(--surf2)' if active_page=='jobs' else 'transparent' }};color:var(--fg);font-weight:700;font-size:14px;text-align:left;min-height:44px">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2v20M4 9l4 4 4-4M20 9l-4 4-4-4"></path></svg>Jobs Monitor
       </a>
-      <a href="/admin/plans" class="lf-nav lf-btn lf-ghost {% if active_page=='plans' %}lf-card{% endif %}" style="padding:10px 12px;border-radius:10px;border:1px solid transparent;width:100%;text-align:left;display:flex;align-items:center;gap:10;color:inherit;" aria-current="{% if active_page=='plans' %}true{% else %}false{% endif %}">
-        <span style="font-family:'JetBrains Mono',monospace;font-size:12px;opacity:.6;">&#9632;</span> Plans
+      <a href="/admin/plans" class="lf-nav {% if active_page=='plans' %}lf-card{% endif %}" style="display:flex;align-items:center;gap:12px;padding:11px 12px;border:0;border-radius:12px;background:{{ 'var(--surf2)' if active_page=='plans' else 'transparent' }};color:var(--fg);font-weight:700;font-size:14px;text-align:left;min-height:44px">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>Plans
       </a>
-      <a href="/admin/providers" class="lf-nav lf-btn lf-ghost {% if active_page=='providers' %}lf-card{% endif %}" style="padding:10px 12px;border-radius:10px;border:1px solid transparent;width:100%;text-align:left;display:flex;align-items:center;gap:10;color:inherit;" aria-current="{% if active_page=='providers' %}true{% else %}false{% endif %}">
-        <span style="font-family:'JetBrains Mono',monospace;font-size:12px;opacity:.6;">&#9632;</span> Provider Health
+      <a href="/admin/providers" class="lf-nav {% if active_page=='providers' %}lf-card{% endif %}" style="display:flex;align-items:center;gap:12px;padding:11px 12px;border:0;border-radius:12px;background:{{ 'var(--surf2)' if active_page=='providers' else 'transparent' }};color:var(--fg);font-weight:700;font-size:14px;text-align:left;min-height:44px">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13V5l-5-5-5 5v13"></path><polyline points="18 8 12 2 6 8"></polyline></svg>Provider Health
       </a>
-      <a href="/admin/audit" class="lf-nav lf-btn lf-ghost {% if active_page=='audit' %}lf-card{% endif %}" style="padding:10px 12px;border-radius:10px;border:1px solid transparent;width:100%;text-align:left;display:flex;align-items:center;gap:10;color:inherit;" aria-current="{% if active_page=='audit' %}true{% else %}false{% endif %}">
-        <span style="font-family:'JetBrains Mono',monospace;font-size:12px;opacity:.6;">&#9632;</span> Audit Log
+      <a href="/admin/audit" class="lf-nav {% if active_page=='audit' %}lf-card{% endif %}" style="display:flex;align-items:center;gap:12px;padding:11px 12px;border:0;border-radius:12px;background:{{ 'var(--surf2)' if active_page=='audit' else 'transparent' }};color:var(--fg);font-weight:700;font-size:14px;text-align:left;min-height:44px">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2 2 0 1 1 2 2v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h12m2-7h6m-6 7h6m-6 13h6"></path></svg>Audit Log
       </a>
     </nav>
-    <div style="padding:16px;border-top:1px solid var(--line);">
+    <div style="padding:16px;border:1px solid var(--line);border-radius:16px;background:var(--bg)">
       <div style="font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">System</div>
-      <button class="lf-btn lf-ghost" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid var(--line);text-align:left;display:flex;align-items:center;gap:10;" onclick="document.getElementById('lf-theme-toggle-admin').click()" aria-label="Toggle theme">
+      <button class="lf-btn lf-ghost" onclick="lfToggleTheme()" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid var(--line);text-align:left;display:flex;align-items:center;gap:10;">
         <span style="font-family:'JetBrains Mono',monospace;font-size:12px;">&#127774;</span> Theme
       </button>
-      <button id="lf-theme-toggle-admin" class="sr-only" onclick="lfToggleTheme()"></button>
     </div>
   </aside>
 
-  <main style="flex:1;padding:24px;overflow-y:auto;">
-    {% block content %}{% endblock %}
+  <main style="flex:999 1 560px;min-width:0">
+    <header style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:14px;padding:18px 32px;border-bottom:1px solid var(--line);background:var(--bg)">
+      <div><h1 style="margin:0;font-size:26px;font-weight:700">{{ page_title }}</h1><div style="font-size:13px;color:var(--mut);margin-top:3px">{{ page_sub }}</div></div>
+      <div style="display:flex;align-items:center;gap:10px;position:relative">
+        <button class="lf-btn lf-ghost" onclick="lfToggleTheme()" aria-label="Toggle light and dark theme" style="width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--surf);color:var(--fg);display:flex;align-items:center;justify-content:center">
+          {% if dark %}
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+          {% else %}
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg>
+          {% endif %}
+        </button>
+      </div>
+    </header>
+
+    <div style="padding:28px 32px 56px">
+      {% block content %}{% endblock %}
+    </div>
   </main>
 </div>
 {% endblock %}

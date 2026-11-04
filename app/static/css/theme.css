@@ -1,74 +1,23 @@
 /* ==========================================================================
-   LeadForge Design Tokens
-   Extracted from docs/design/*.dc.html
+   LeadForge Design Tokens — exact values from docs/design/LeadForge Design System.html
+   Light theme (L) and Dark theme (D) as defined in the design JS
    ========================================================================== */
 
-/* Light theme (default) */
-html {
-  --bg: #faf9f5;
-  --fg: #14181d;
-  --surf: #ffffff;
-  --surf2: #f3f4f6;
-  --line: #d9dee5;
-  --mut: #6b6a68;
-  --acc: #0b7a75;
-  --accfg: #ffffff;
-  --acc2: #3dc9c2;
-  --ok: #157347;
-  --okfg: #ffffff;
-  --warn: #b45309;
-  --warnfg: #ffffff;
-  --bad: #b42318;
-  --badfg: #ffffff;
-  --shadow: rgba(16, 24, 40, 0.10);
-  --shadow-h: rgba(16, 24, 40, 0.28);
-  --ring: rgba(11, 122, 117, 0.35);
-}
-
-/* Dark theme */
-html[data-theme="dark"] {
-  --bg: #0b0d10;
-  --fg: #eef1f5;
-  --surf: #14181d;
-  --surf2: #1c2128;
-  --line: #2a313a;
-  --mut: #9aa4b2;
-  --acc: #0b7a75;
-  --accfg: #ffffff;
-  --acc2: #3dc9c2;
-  --ok: #157347;
-  --okfg: #ffffff;
-  --warn: #b45309;
-  --warnfg: #ffffff;
-  --bad: #b42318;
-  --badfg: #ffffff;
-  --shadow: rgba(8, 10, 14, 0.62);
-  --shadow-h: rgba(8, 10, 14, 0.85);
-  --ring: rgba(11, 122, 117, 0.45);
-}
+/* Light theme — applied inline on root .lf div via --bg,--surf,etc. */
+/* Dark theme — same vars, different values */
 
 /* ==========================================================================
    Base
    ========================================================================== */
-html {
-  font-size: 14px;
-  line-height: 1.4;
-  scroll-behavior: smooth;
-}
-
-body {
+html, body {
   margin: 0;
   padding: 0;
-  background: var(--bg);
-  color: var(--fg);
   font-family: 'Manrope', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
 .lf {
   font-family: 'Manrope', system-ui, sans-serif;
-  background: var(--bg);
-  color: var(--fg);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -109,7 +58,7 @@ body {
 }
 
 /* ==========================================================================
-   Components
+   Components (from design CSS)
    ========================================================================== */
 .lf-btn {
   transition: transform 0.18s, box-shadow 0.18s, background 0.18s, border-color 0.18s, color 0.18s;
@@ -155,14 +104,6 @@ body {
   color: var(--acc);
 }
 
-.lf-logo {
-  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-
-.lf-logo:hover {
-  transform: rotate(-6deg) scale(1.06);
-}
-
 .lf-nav {
   transition: background 0.15s, color 0.15s, transform 0.15s;
 }
@@ -181,6 +122,64 @@ body {
   border-color: var(--acc);
   box-shadow: 0 0 0 3px var(--ring);
 }
+
+.lf-logo {
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.lf-logo:hover {
+  transform: rotate(-6deg) scale(1.06);
+}
+
+.lf-spin {
+  animation: lf-spin 1s linear infinite;
+}
+
+.lf-skel {
+  background: linear-gradient(90deg, var(--surf2), var(--line), var(--surf2));
+  background-size: 200% 100%;
+  animation: lf-shim 1.4s linear infinite;
+}
+
+.lf-dot {
+  animation: lf-pulse 2s infinite;
+}
+
+.lf-toast {
+  animation: lf-toast 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.lf-modal {
+  animation: lf-pop 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.lf-ov {
+  animation: lf-fade 0.2s both;
+}
+
+.lf-view {
+  animation: lf-view 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.lf-fade {
+  animation: lf-fade 0.35s both;
+}
+
+.lf-pop {
+  animation: lf-pop 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes lf-spin { to { transform: rotate(360deg); } }
+@keyframes lf-shim { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+@keyframes lf-toast { from { opacity: 0; transform: translateY(14px) scale(0.96); } to { opacity: 1; transform: none; } }
+@keyframes lf-pop { from { opacity: 0; transform: translateY(12px) scale(0.97); } to { opacity: 1; transform: none; } }
+@keyframes lf-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes lf-pulse {
+  0% { box-shadow: 0 0 0 0 var(--acc); }
+  70% { box-shadow: 0 0 0 10px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+@keyframes lf-view { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 
 /* ==========================================================================
    3D Bar chart (lf-bar)
@@ -264,7 +263,7 @@ body {
 }
 
 /* ==========================================================================
-   Donut chart (lf-disc)
+   Donut / disc (lf-disc)
    ========================================================================== */
 .lf-dwrap {
   perspective: 1000px;
@@ -303,7 +302,7 @@ body {
 }
 
 /* ==========================================================================
-   Area chart / scene
+   Stage / scene (lf-stage, lf-scene)
    ========================================================================== */
 .lf-scene {
   transform-style: preserve-3d;
@@ -351,47 +350,7 @@ body {
 }
 
 /* ==========================================================================
-   Animations
-   ========================================================================== */
-.lf-spin {
-  animation: lf-spin 1s linear infinite;
-}
-
-.lf-skel {
-  background: linear-gradient(90deg, var(--surf2), var(--line), var(--surf2));
-  background-size: 200% 100%;
-  animation: lf-shim 1.4s linear infinite;
-}
-
-.lf-l1 { animation: lf-float 6s ease-in-out infinite; }
-.lf-l2 { animation: lf-float 7s ease-in-out -2s infinite; }
-.lf-l3 { animation: lf-float 8s ease-in-out -4s infinite; }
-
-@keyframes lf-spin { to { transform: rotate(360deg); } }
-@keyframes lf-shim { from { background-position: 200% 0; } to { background-position: -200% 0; } }
-@keyframes lf-toast { from { opacity: 0; transform: translateY(14px) scale(0.96); } to { opacity: 1; transform: none; } }
-@keyframes lf-pop { from { opacity: 0; transform: translateY(12px) scale(0.97); } to { opacity: 1; transform: none; } }
-@keyframes lf-fade { from { opacity: 0; } to { opacity: 1; } }
-@keyframes lf-pulse {
-  0% { box-shadow: 0 0 0 0 var(--acc); }
-  70% { box-shadow: 0 0 0 10px transparent; }
-  100% { box-shadow: 0 0 0 0 transparent; }
-}
-@keyframes lf-view { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
-@keyframes lf-float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-12px); }
-}
-
-.lf-dot { animation: lf-pulse 2s infinite; }
-
-.lf-toast { animation: lf-toast 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
-.lf-modal { animation: lf-pop 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
-.lf-ov { animation: lf-fade 0.2s both; }
-.lf-view { animation: lf-view 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
-
-/* ==========================================================================
-   Utilities (modal, toast, badges, etc.)
+   Utilities (modal overlay, toast container, badges, stat cards)
    ========================================================================== */
 .lf-ov {
   position: fixed;
@@ -419,9 +378,9 @@ body {
 
 .lf-toast-container {
   position: fixed;
-  top: 16px;
-  right: 16px;
-  z-index: 600;
+  right: 24px;
+  bottom: 24px;
+  z-index: 60;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -432,18 +391,22 @@ body {
   pointer-events: auto;
   background: var(--surf);
   border: 1px solid var(--line);
+  border-left: 4px solid var(--ok);
+  border-radius: 14px;
   color: var(--fg);
-  padding: 10px 14px;
-  border-radius: 10px;
+  padding: 14px 16px;
   box-shadow: var(--shadow-h);
-  min-width: 260px;
-  max-width: 400px;
+  max-width: 360px;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 14px;
 }
 
-.lf-toast .lf-toast-close {
+.lf-toast.kind-ok { border-left-color: var(--ok); }
+.lf-toast.kind-warn { border-left-color: var(--acc); }
+.lf-toast.kind-bad { border-left-color: var(--bad); }
+
+.lf-toast-close {
   background: none;
   border: none;
   color: var(--mut);
@@ -451,10 +414,6 @@ body {
   padding: 2px;
   line-height: 1;
 }
-
-.lf-toast.kind-ok { border-left: 3px solid var(--ok); }
-.lf-toast.kind-warn { border-left: 3px solid var(--warn); }
-.lf-toast.kind-bad { border-left: 3px solid var(--bad); }
 
 .badge {
   display: inline-flex;

@@ -2,76 +2,171 @@
 {% block title %}LeadForge — Lead Sourcing SaaS{% endblock %}
 
 {% block content %}
-<section style="padding:64px 20px;max-width:1000px;margin:0 auto;text-align:center;">
-  <div style="display:inline-flex;align-items:center;gap:10;padding:8px 16px;border:1px solid var(--line);border-radius:999px;background:var(--surf);font-size:12px;color:var(--mut);margin-bottom:32px;">
-    <span style="font-family:'JetBrains Mono',monospace;font-size:11px;">&#9632;</span> Multi-tenant &bull; Postgres &bull; No Docker
-  </div>
-
-  <h1 class="disp" style="font-size:52px;line-height:1.1;margin:0 0 20px;letter-spacing:-0.04em;">
-    One query. <span style="color:var(--acc);">Leads delivered.</span>
-  </h1>
-  <p style="font-size:19px;color:var(--mut);margin:0 0 36px;max-width:620px;margin-left:auto;margin-right:auto;">
-    Type a natural-language query. An AI planner picks sources, sources run in parallel, results are merged,
-    deduplicated, enriched, scored 0&ndash;100, and land in your dashboard.
-  </p>
-
-  <div style="max-width:700px;margin:0 auto 48px;border:1px solid var(--line);border-radius:14px;background:var(--surf);padding:1px;position:relative;overflow:hidden;">
-    <input type="text" id="q" placeholder="e.g. India fintech startups whose founders do manual reporting, 20 leads"
-      style="width:100%;border:none;background:transparent;padding:16px 20px;font-size:16px;color:var(--fg);font-family:inherit;">
-    <button onclick="document.getElementById('q').value && (window.location.href='/searches?q='+encodeURIComponent(document.getElementById('q').value))"
-      class="lf-btn" style="position:absolute;right:10px;top:10px;bottom:10px;border-radius:10px;padding:0 24px;background:var(--acc);color:var(--accfg);border:none;font-weight:600;">Go</button>
-  </div>
-
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px;margin-top:48px;">
-    <div class="lf-card" style="border:1px solid var(--line);border-radius:14px;padding:24px;text-align:left;">
-      <h3 style="font-size:16px;margin:0 0 10px;font-family:Sora;">Planner decides sources</h3>
-      <p style="font-size:13px;color:var(--mut);margin:0;">Query is turned into a source/filter plan. Starter gets Apollo + web search; Pro adds Google Places.</p>
+<!-- NAV -->
+<div style="border-bottom:1px solid var(--line);background:var(--bg)">
+  <div style="max-width:1200px;margin:0 auto;padding:16px 32px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px">
+    <a href="/" style="display:flex;align-items:center;gap:10px" aria-label="LeadForge home">
+      <svg width="34" height="34" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="10" fill="var(--acc)"></rect><path d="M8 10h24v6H8z" fill="var(--accfg)"></path><path d="M11 18h18l-5 8v3h-8v-3z" fill="var(--accfg)"></path><rect x="12" y="31" width="16" height="3" rx="1.5" fill="var(--accfg)"></rect></svg>
+      <span class="disp" style="font-weight:700;font-size:20px">LeadForge</span>
+    </a>
+    <div style="display:flex;flex-wrap:wrap;align-items:center;gap:28px;font-weight:600;font-size:14px">
+      <a class="lf-link" href="#how">How it works</a>
+      <a class="lf-link" href="#features">Features</a>
+      <a class="lf-link" href="#pricing">Pricing</a>
+      <a class="lf-link" href="#faq">FAQ</a>
     </div>
-    <div class="lf-card" style="border:1px solid var(--line);border-radius:14px;padding:24px;text-align:left;">
-      <h3 style="font-size:16px;margin:0 0 10px;font-family:Sora;">Parallel sourcing</h3>
-      <p style="font-size:13px;color:var(--mut);margin:0;">Apollo, web search, Places run at once. One source failing never fails the job.</p>
-    </div>
-    <div class="lf-card" style="border:1px solid var(--line);border-radius:14px;padding:24px;text-align:left;">
-      <h3 style="font-size:16px;margin:0 0 10px;font-family:Sora;">Enriched &amp; scored</h3>
-      <p style="font-size:13px;color:var(--mut);margin:0;">Waterfall email enrichment, AI scoring, hot/warm/cold tiers, opener copy.</p>
+    <div style="display:flex;align-items:center;gap:12px">
+      <button class="lf-btn lf-ghost" onclick="lfToggleTheme()" aria-label="Toggle light and dark theme" style="width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--surf);color:var(--fg);display:flex;align-items:center;justify-content:center">
+        {% if dark %}
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+        {% else %}
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg>
+        {% endif %}
+      </button>
+      <a class="lf-btn lf-ghost" href="/auth/login" style="padding:11px 18px;border-radius:12px;border:1px solid var(--line);background:var(--surf);font-weight:700;font-size:14px;min-height:44px;box-sizing:border-box;display:flex;align-items:center">Sign in</a>
+      <button class="lf-btn" style="padding:11px 18px;border-radius:12px;border:0;background:var(--acc);color:var(--accfg);font-weight:700;font-size:14px;min-height:44px">Start free trial</button>
     </div>
   </div>
+</div>
 
-  <div style="margin-top:56px;border-top:1px solid var(--line);padding-top:32px;">
-    <p style="font-size:13px;color:var(--mut);margin:0 0 16px;">Pricing</p>
-    <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;">
-      <div style="border:1px solid var(--line);border-radius:12px;padding:20px;min-width:220px;">
-        <div style="font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.05em;">Starter</div>
-        <div style="font-size:24px;font-family:'JetBrains Mono',monospace;font-weight:700;margin:8px 0 12px;">&#8377;[PRICE]/mo</div>
-        <ul style="font-size:13px;color:var(--mut);margin:0;padding-left:16px;list-style:none;">
-          <li style="margin:4px 0;">&#10003; 50 credits/month</li>
-          <li style="margin:4px 0;">&#10003; 1 seat</li>
-          <li style="margin:4px 0;">&#10003; Apollo + web search</li>
-        </ul>
+<!-- HERO -->
+<div style="max-width:1200px;margin:0 auto;padding:72px 32px 96px;display:flex;flex-wrap:wrap;gap:56px;align-items:center">
+  <div style="flex:1 1 520px;min-width:0">
+    <div style="display:inline-flex;align-items:center;gap:10px;padding:7px 14px;border:1px solid var(--line);border-radius:999px;background:var(--surf);font-size:13px;font-weight:700">
+      <span class="lf-dot" style="width:8px;height:8px;border-radius:50%;background:var(--acc)"></span>
+      Natural-language lead sourcing
+    </div>
+    <h1 style="font-size:60px;line-height:1.04;margin:22px 0 0;font-weight:700">Describe who you sell to. Get a scored lead list.</h1>
+    <p style="font-size:18px;line-height:1.6;color:var(--mut);margin:22px 0 0;max-width:540px">Type one sentence. LeadForge plans the search, runs sources in parallel, removes duplicates, enriches contacts and scores every lead for fit.</p>
+
+    <div style="margin-top:32px;padding:10px;border:1px solid var(--line);background:var(--surf);border-radius:18px;box-shadow:var(--shadow);display:flex;flex-wrap:wrap;gap:10px;align-items:center;max-width:620px">
+      <label for="q" style="position:absolute;left:-9999px">Describe your ideal leads</label>
+      <input id="q" value="" style="flex:1 1 240px;min-width:0;border:0;background:transparent;color:var(--fg);font-size:15px;padding:12px 10px;outline:none;min-height:44px;box-sizing:border-box">
+      <div style="position:relative">
+        <button class="lf-btn lf-ghost" aria-haspopup="listbox" style="display:flex;align-items:center;gap:8px;padding:10px 14px;border:1px solid var(--line);background:var(--surf2);color:var(--fg);border-radius:12px;font-weight:700;font-size:14px;min-height:44px">
+          <span class="mono">10</span> leads
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>
+        </button>
+        <div class="lf-modal" role="listbox" style="position:absolute;right:0;top:calc(100% + 8px);z-index:20;min-width:150px;padding:6px;border:1px solid var(--line);background:var(--surf);border-radius:14px;box-shadow:var(--shadow-h);display:none;">
+          {% for n in [10, 20, 50, 100] %}
+          <button class="lf-row" role="option" style="display:flex;width:100%;justify-content:space-between;align-items:center;padding:10px 12px;border:0;border-radius:9px;background:transparent;color:var(--fg);font-size:14px;font-weight:600;min-height:44px;box-sizing:border-box"><span><span class="mono">{{ n }}</span> leads</span><span style="color:var(--acc);font-weight:700">&#10003;</span></button>
+          {% endfor %}
+        </div>
       </div>
-      <div style="border:1px solid var(--line);border-radius:12px;padding:20px;min-width:220px;">
-        <div style="font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.05em;">Pro</div>
-        <div style="font-size:24px;font-family:'JetBrains Mono',monospace;font-weight:700;margin:8px 0 12px;">&#8377;[PRICE]/mo</div>
-        <ul style="font-size:13px;color:var(--mut);margin:0;padding-left:16px;list-style:none;">
-          <li style="margin:4px 0;">&#10003; 300 credits/month</li>
-          <li style="margin:4px 0;">&#10003; 5 seats</li>
-          <li style="margin:4px 0;">&#10003; Places + openers + API</li>
-        </ul>
-      </div>
+      <button class="lf-btn" style="padding:12px 22px;border:0;border-radius:12px;background:var(--acc);color:var(--accfg);font-weight:700;font-size:15px;min-height:44px">Find leads</button>
     </div>
-    <p style="font-size:12px;color:var(--mut);margin-top:20px;">Plan limits are read from the plans table &mdash; nothing hardcoded.</p>
+
+    <div style="margin-top:20px;display:flex;flex-wrap:wrap;gap:22px;font-size:13px;color:var(--mut);font-weight:600">
+      <span>1 credit per lead delivered</span><span>Unused credits refunded</span><span>10 trial credits, 7 days</span>
+    </div>
   </div>
 
-  <div style="margin-top:40px;">
-    <a href="/auth/signup" class="lf-btn" style="padding:14px 32px;font-size:16px;">Start free trial</a>
-    <a href="/auth/login" class="lf-btn lf-ghost" style="padding:14px 32px;border:1px solid var(--line);margin-left:10px;">Sign in</a>
+  <div style="flex:1 1 460px;min-width:0;perspective:1400px;display:flex;justify-content:center;padding:24px 0">
+    <div class="lf-scene" style="position:relative;width:420px;max-width:100%;height:440px">
+      <div class="lf-l3" style="position:absolute;inset:34px -30px -34px 40px;transform:translateZ(-90px);border:1px solid var(--line);border-radius:22px;background:var(--surf2)"></div>
+      <div class="lf-l2" style="position:absolute;inset:16px -14px -16px 20px;transform:translateZ(-40px);border:1px solid var(--line);border-radius:22px;background:var(--surf)">
+        <div style="padding:20px;display:flex;flex-direction:column;gap:10px">
+          <div style="height:10px;width:46%;border-radius:6px;background:var(--line)"></div>
+          <div style="height:10px;width:70%;border-radius:6px;background:var(--line)"></div>
+        </div>
+      </div>
+      <div class="lf-l1" style="position:absolute;inset:0;transform:translateZ(30px);border:1px solid var(--line);border-radius:22px;background:var(--surf);box-shadow:var(--shadow-h);padding:20px;box-sizing:border-box;display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div><div class="disp" style="font-weight:700;font-size:16px">Fintech founders, 20 leads</div><div class="mono" style="font-size:12px;color:var(--mut);margin-top:3px">sample data</div></div>
+          <span style="padding:5px 10px;border-radius:999px;background:var(--surf2);color:var(--ok);font-size:12px;font-weight:700">Done</span>
+        </div>
+        <div style="height:6px;border-radius:4px;background:var(--surf2);overflow:hidden"><div style="width:100%;height:100%;background:var(--acc)"></div></div>
+        {% for l in [{'initial':'A','name':'Aarav K.','meta':'CEO, FinFlow','score':'92','tone':'var(--ok)'},{'initial':'P','name':'Priya S.','meta':'CTO, DataScale','score':'84','tone':'var(--ok)'},{'initial':'R','name':'Rahul M.','meta':'Founder, PayLink','score':'76','tone':'var(--acc2)'},{'initial':'S','name':'Sneha R.','meta':'Head of Ops, Ledgify','score':'68','tone':'var(--acc2)'},{'initial':'V','name':'Vikram J.','meta':'Director, NeoBank','score':'54','tone':'var(--mut)'}] %}
+        <div class="lf-row" style="display:flex;align-items:center;gap:12px;padding:9px 10px;border-radius:12px">
+          <div class="disp" style="width:36px;height:36px;border-radius:10px;background:var(--surf2);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:var(--acc)">{{ l.initial }}</div>
+          <div style="flex:1;min-width:0"><div style="font-weight:700;font-size:14px">{{ l.name }}</div><div style="font-size:12px;color:var(--mut)">{{ l.meta }}</div></div>
+          <div class="mono" style="font-weight:700;font-size:14px;color:{{ l.tone }}">{{ l.score }}</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
   </div>
-</section>
+</div>
+
+<!-- HOW IT WORKS -->
+<div id="how" style="background:var(--surf);border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+  <div style="max-width:1200px;margin:0 auto;padding:88px 32px">
+    <div class="mono" style="font-size:13px;color:var(--acc);font-weight:500">HOW IT WORKS</div>
+    <h2 style="font-size:40px;margin:12px 0 0;font-weight:700;max-width:640px">One sentence in. Six steps run for you.</h2>
+    <div style="margin-top:44px;display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:16px">
+      {% for s in [{'n':'1','t':'Plan','d':'AI turns your query into sources and filters'},{'n':'2','t':'Search','d':'Apollo, web, Places run in parallel'},{'n':'3','t':'Merge','d':'Duplicates removed against your org'},{'n':'4','t':'Enrich','d':'Email waterfall: Apollo, Hunter, Skrapp'},{'n':'5','t':'Score','d':'AI rates fit 0&ndash;100, hot/warm/cold'},{'n':'6','t':'Deliver','d':'Leads land in your dashboard'}] %}
+      <div class="lf-card" style="padding:22px;border:1px solid var(--line);border-radius:18px;background:var(--bg)">
+        <div class="mono" style="font-size:13px;color:var(--acc)">{{ s.n }}</div>
+        <h3 style="font-size:19px;margin:14px 0 8px;font-weight:600">{{ s.t }}</h3>
+        <p style="margin:0;font-size:14px;line-height:1.55;color:var(--mut)">{{ s.d }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<div id="features" style="max-width:1200px;margin:0 auto;padding:96px 32px">
+  <div class="mono" style="font-size:13px;color:var(--acc);font-weight:500">FEATURES</div>
+  <h2 style="font-size:40px;margin:12px 0 0;font-weight:700;max-width:640px">Built for teams that need leads, not spreadsheets.</h2>
+  <div style="margin-top:44px;display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px">
+    {% for f in [{'t':'Multi-source','d':'Apollo, web search, Google Places in parallel'},{'t':'Dedupe','d':'Against sources and your existing org leads'},{'t':'Enrichment','d':'Waterfall email: Apollo &rarr; Hunter &rarr; Skrapp'},{'t':'AI scoring','d':'0&ndash;100 score, hot/warm/cold tiers'},{'t':'Export','d':'XLSX and CSV with formula-injection guard'},{'t':'Multi-tenant','d':'Org-isolated data, credits, subscriptions'}] %}
+    <div class="lf-card" style="padding:26px;border:1px solid var(--line);border-radius:20px;background:var(--surf);box-shadow:var(--shadow)">
+      <div style="width:46px;height:46px;border-radius:13px;background:var(--surf2);color:var(--acc);display:flex;align-items:center;justify-content:center;font-size:20px">&#10003;</div>
+      <h3 style="font-size:17px;margin:16px 0 8px;font-weight:600">{{ f.t }}</h3>
+      <p style="margin:0;font-size:14px;line-height:1.55;color:var(--mut)">{{ f.d }}</p>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- PRICING -->
+<div id="pricing" style="background:var(--bg);border-top:1px solid var(--line);padding:80px 32px">
+  <div style="max-width:1200px;margin:0 auto">
+    <div class="mono" style="font-size:13px;color:var(--acc);font-weight:500">PRICING</div>
+    <h2 style="font-size:40px;margin:12px 0 0;font-weight:700;max-width:640px">Simple, per-organization pricing</h2>
+    <div style="margin-top:40px;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px">
+      {% for p in [{'name':'Starter','price':'[PRICE]','credits':50,'seats':1,'features':['Apollo + web search','Basic scoring','1 seat']},{'name':'Pro','price':'[PRICE]','credits':300,'seats':5,'features':['Places source','AI openers','API access','Saved searches']}] %}
+      <div class="lf-card" style="border:1px solid var(--line);border-radius:16px;padding:28px;text-align:left;{% if loop.last %}border-color:var(--acc);box-shadow:var(--shadow-h){% endif %}">
+        <h3 style="font-size:18px;margin:0 0 6px;font-family:Sora;">{{ p.name }}</h3>
+        <div style="font-size:30px;font-family:'JetBrains Mono',monospace;font-weight:700;margin:6px 0 14px;">&#8377;{{ p.price }}</div>
+        <div style="font-size:13px;color:var(--mut);margin:0 0 16px;">{{ p.credits }} credits/month &bull; {{ p.seats }} seat{% if p.seats != 1 %}s{% endif %}</div>
+        <ul style="font-size:13px;color:var(--mut);margin:0;padding-left:16px;list-style:none;">
+          {% for feat in p.features %}
+          <li style="margin:4px 0;">&#10003; {{ feat }}</li>
+          {% endfor %}
+        </ul>
+        <div style="margin-top:20px;">
+          <a href="/auth/signup" class="lf-btn" style="width:100%;{% if not loop.last %}border:1px solid var(--line);background:transparent;color:var(--fg);{% endif %}">{{ 'Get started' if not loop.last else 'Start Pro trial' }}</a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- FAQ -->
+<div id="faq" style="max-width:1200px;margin:0 auto;padding:80px 32px">
+  <div class="mono" style="font-size:13px;color:var(--acc);font-weight:500">FAQ</div>
+  <h2 style="font-size:40px;margin:12px 0 0;font-weight:700;max-width:640px">Questions?</h2>
+  <div style="margin-top:40px;max-width:640px">
+    <div style="border-bottom:1px solid var(--line);padding:16px 0">
+      <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;font-weight:600;font-size:15px">Is there a free trial?<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:8px"><polyline points="6 9 12 15 18 9"></polyline></svg></div>
+      <div style="font-size:14px;color:var(--mut);margin-top:8px">Yes. 7 days with 10 credits. No card needed.</div>
+    </div>
+    <div style="border-bottom:1px solid var(--line);padding:16px 0">
+      <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;font-weight:600;font-size:15px">How are credits used?<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:8px"><polyline points="6 9 12 15 18 9"></polyline></svg></div>
+      <div style="font-size:14px;color:var(--mut);margin-top:8px">1 credit per lead delivered. Unused credits are refunded after each job.</div>
+    </div>
+    <div style="border-bottom:1px solid var(--line);padding:16px 0">
+      <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;font-weight:600;font-size:15px">Can I change plans?<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:8px"><polyline points="6 9 12 15 18 9"></polyline></svg></div>
+      <div style="font-size:14px;color:var(--mut);margin-top:8px">Yes. Plan changes apply to new subscription periods.</div>
+    </div>
+  </div>
+</div>
 
 <footer style="padding:40px 20px;border-top:1px solid var(--line);max-width:1000px;margin:0 auto;">
-  <p style="font-size:12px;color:var(--mut);margin:0 0 12px;">
-    Leads come from licensed third-party data providers. Organization data is isolated by org_id. Credits, subscriptions, and leads belong to your organization.
-  </p>
+  <p style="font-size:12px;color:var(--mut);margin:0 0 12px;">Leads come from licensed third-party data providers. Organization data is isolated by org_id. Credits, subscriptions, and leads belong to your organization.</p>
   <p style="font-size:12px;color:var(--mut);margin:0;">
     <a href="/privacy" class="lf-link" style="color:var(--mut);text-decoration:underline;">Privacy</a> &bull;
     <a href="/terms" class="lf-link" style="color:var(--mut);text-decoration:underline;">Terms</a> &bull;

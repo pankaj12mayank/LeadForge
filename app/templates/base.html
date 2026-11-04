@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -13,26 +13,41 @@
   <script>
     (function(){
       var KEY = 'lf-theme';
-      var html = document.documentElement;
       var saved = localStorage.getItem(KEY);
       var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-      var theme = saved || (prefersDark ? 'dark' : 'light');
-      html.setAttribute('data-theme', theme);
-      localStorage.setItem(KEY, theme);
+      var dark = saved ? saved === 'dark' : prefersDark;
+      var L = { bg:'#F3F4F6', surf:'#FFFFFF', surf2:'#EBEEF2', line:'#D9DEE5', fg:'#0E1116', mut:'#4B5563', acc:'#C8431A', accfg:'#FFFFFF', acc2:'#0B7A75', ok:'#157347', ring:'rgba(200,67,26,.22)', sh:'0 1px 2px rgba(16,24,40,.06),0 10px 28px -10px rgba(16,24,40,.10)', shh:'0 18px 40px -14px rgba(16,24,40,.28)' };
+      var D = { bg:'#0B0D10', surf:'#14181D', surf2:'#1C2128', line:'#2A313A', fg:'#EEF1F5', mut:'#9AA4B2', acc:'#FF7A45', accfg:'#1A0B04', acc2:'#3DC9C2', ok:'#4ADE80', ring:'rgba(255,122,69,.28)', sh:'0 1px 2px rgba(0,0,0,.4),0 10px 28px -10px rgba(0,0,0,.5)', shh:'0 18px 44px -14px rgba(0,0,0,.7)' };
+      var t = dark ? D : L;
+      var root = document.documentElement;
+      root.style.setProperty('--bg', t.bg);
+      root.style.setProperty('--surf', t.surf);
+      root.style.setProperty('--surf2', t.surf2);
+      root.style.setProperty('--line', t.line);
+      root.style.setProperty('--fg', t.fg);
+      root.style.setProperty('--mut', t.mut);
+      root.style.setProperty('--acc', t.acc);
+      root.style.setProperty('--accfg', t.accfg);
+      root.style.setProperty('--acc2', t.acc2);
+      root.style.setProperty('--ok', t.ok);
+      root.style.setProperty('--ring', t.ring);
+      root.style.setProperty('--shadow', t.sh);
+      root.style.setProperty('--shadow-h', t.shh);
+      localStorage.setItem(KEY, dark ? 'dark' : 'light');
     })();
   </script>
 </head>
 <body class="lf">
   {% block body %}{% endblock %}
 
-  <!-- Toast container -->
-  <div id="lf-toast-container" class="lf-toast-container" aria-live="polite" aria-label="Notifications"></div>
+  <!-- Toast container (bottom-right, matches design) -->
+  <div id="lf-toast-container" style="position:fixed;right:24px;bottom:24px;z-index:60;display:flex;flex-direction:column;gap:8px;pointer-events:none;"></div>
 
   <!-- Modal overlay + container -->
-  <div id="lf-modal-overlay" class="lf-ov" aria-hidden="true" onclick="lfCloseModal()"></div>
-  <div id="lf-modal" class="lf-modal" aria-hidden="true" aria-modal="true" role="dialog">
-    <div id="lf-modal-content" class="lf-card" style="background:var(--surf);border:1px solid var(--line);border-radius:16px;padding:24px;max-width:560px;width:92%;max-height:85vh;overflow:auto;position:relative;">
-      <button id="lf-modal-close" class="lf-btn lf-ghost" style="position:absolute;top:12px;right:12px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:8px;" aria-label="Close modal" onclick="lfCloseModal()">&#215;</button>
+  <div id="lf-modal-overlay" style="position:fixed;inset:0;background:rgba(8,10,14,0.45);backdrop-filter:blur(2px);z-index:400;display:none;" onclick="lfCloseModal()"></div>
+  <div id="lf-modal" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:500;display:none;" aria-modal="true" role="dialog">
+    <div id="lf-modal-content" style="background:var(--surf);border:1px solid var(--line);border-radius:16px;padding:24px;max-width:560px;width:92%;max-height:85vh;overflow:auto;position:relative;">
+      <button id="lf-modal-close" style="position:absolute;top:12px;right:12px;width:40px;height:40px;border:0;border-radius:8px;background:transparent;color:var(--mut);display:flex;align-items:center;justify-content:center;cursor:pointer;" aria-label="Close modal" onclick="lfCloseModal()">&#215;</button>
       <div id="lf-modal-body"></div>
     </div>
   </div>
@@ -40,12 +55,12 @@
   <script>
     window.lfShowToast = function(kind, title, msg) {
       var container = document.getElementById('lf-toast-container');
+      var color = kind === 'ok' ? 'var(--ok)' : 'var(--acc2)';
       var el = document.createElement('div');
-      el.className = 'lf-toast kind-' + (kind || 'ok');
       el.role = 'status';
-      el.innerHTML = '<span style="font-weight:600;">' + (title || '') + '</span>' +
-                     (msg ? '<span style="opacity:.7;font-size:13px;margin-left:8px;">' + msg + '</span>' : '') +
-                     '<button class="lf-toast-close" onclick="this.closest(\'.lf-toast\').remove()" aria-label="Dismiss">&#215;</button>';
+      el.style.cssText = 'display:flex;align-items:center;gap:14px;padding:14px 16px;border:1px solid var(--line);border-left:4px solid '+color+';border-radius:14px;background:var(--surf);box-shadow:var(--shadow-h);max-width:360px;';
+      el.innerHTML = '<div><div style="font-weight:700;font-size:14px">'+(title||'')+'</div><div style="font-size:13px;color:var(--mut);margin-top:2px">'+(msg||'')+'</div></div>' +
+        '<button style="width:44px;height:44px;border:0;border-radius:10px;background:transparent;color:var(--mut);display:flex;align-items:center;justify-content:center;cursor:pointer;" onclick="this.closest(\'.lf-toast\').remove()" aria-label="Dismiss notification"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>';
       container.appendChild(el);
       setTimeout(function(){ if (el.isConnected) el.remove(); }, 3400);
     };
@@ -55,33 +70,30 @@
       var overlay = document.getElementById('lf-modal-overlay');
       var body = document.getElementById('lf-modal-body');
       body.innerHTML = htmlContent;
-      modal.setAttribute('aria-hidden', 'false');
-      overlay.setAttribute('aria-hidden', 'false');
+      modal.style.display = 'flex';
+      overlay.style.display = 'block';
       document.body.style.overflow = 'hidden';
       document.getElementById('lf-modal-close').focus();
     };
 
     window.lfCloseModal = function() {
-      var modal = document.getElementById('lf-modal');
-      var overlay = document.getElementById('lf-modal-overlay');
-      modal.setAttribute('aria-hidden', 'true');
-      overlay.setAttribute('aria-hidden', 'true');
+      document.getElementById('lf-modal').style.display = 'none';
+      document.getElementById('lf-modal-overlay').style.display = 'none';
       document.getElementById('lf-modal-body').innerHTML = '';
       document.body.style.overflow = '';
     };
 
     window.lfToggleTheme = function() {
-      var html = document.documentElement;
-      var cur = html.getAttribute('data-theme');
-      var next = cur === 'dark' ? 'light' : 'dark';
-      html.setAttribute('data-theme', next);
+      var saved = localStorage.getItem('lf-theme');
+      var next = saved === 'dark' ? 'light' : 'dark';
       localStorage.setItem('lf-theme', next);
+      location.reload();
     };
 
     document.addEventListener('keydown', function(e) {
       if (e.key === 'Escape') {
         var modal = document.getElementById('lf-modal');
-        if (modal.getAttribute('aria-hidden') === 'false') lfCloseModal();
+        if (modal.style.display !== 'none') lfCloseModal();
       }
     });
 
